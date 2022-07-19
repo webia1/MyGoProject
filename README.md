@@ -88,6 +88,8 @@ export GOBIN="$HOME/.gobrew/current/bin"
 > **Notice**: You have to repeat this step if you use a go versions manager and
 > and change the current version!
 
+> Further info for VSCode: <https://github.com/golang/vscode-go/wiki/tools>
+
 1. F1 -> Go: Install/Update Tools
 2. Select all and click OK
 
@@ -202,6 +204,8 @@ GitHub: <https://github.com/dominikh/go-tools> Online Documentation:
 <https://staticcheck.io/docs/>
 
 ##### gopls, the Go Language Server
+
+> MacOS: XCode and Command Line Tools may be necessary
 
 `gopls` (pronounced "Go please") is the official Go language server developed by
 the Go team. It provides IDE features to any LSP-compatible editor.
