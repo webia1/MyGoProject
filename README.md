@@ -15,6 +15,7 @@
   - [VsCode Install/Update Tools](#vscode-installupdate-tools)
     - [Go Ppkgs](#go-ppkgs)
     - [Go Outline](#go-outline)
+    - [Go Imports](#go-imports)
     - [Go Tests](#go-tests)
     - [Go Modify Tags](#go-modify-tags)
     - [Go Impl](#go-impl)
@@ -90,6 +91,8 @@ export GOBIN="$HOME/.gobrew/current/bin"
 
 > Further info for VSCode: <https://github.com/golang/vscode-go/wiki/tools>
 
+> Further General Infos: <https://pkg.go.dev/golang.org/x/tools>
+
 1. F1 -> Go: Install/Update Tools
 2. Select all and click OK
 
@@ -97,19 +100,30 @@ export GOBIN="$HOME/.gobrew/current/bin"
 
 You see then in output window, something like:
 
-```shell
+```zsh
 
 Installing 10 tools at the configured GOBIN:
-  gopkgs
-  go-outline
   gotests
   gomodifytags
   impl
   goplay
+  gopkgs
+  go-outline  # within gopls in newer versions
   dlv
   dlv-dap
   staticcheck
   gopls
+
+.. github.com/cweill/gotests/gotests@latest (..go/bin/gotests) SUCCEEDED
+.. github.com/fatih/gomodifytags@latest (..go/bin/gomodifytags) SUCCEEDED
+.. github.com/josharian/impl@latest (..go/bin/impl) SUCCEEDED
+.. github.com/haya14busa/goplay/cmd/goplay@latest (..go/bin/goplay) SUCCEEDED
+.. github.com/go-delve/delve/cmd/dlv@latest (..go/bin/dlv) SUCCEEDED
+.. honnef.co/go/tools/cmd/staticcheck@latest (..go/bin/staticcheck) SUCCEEDED
+.. golang.org/x/tools/gopls@v0.9.1 (..go/bin/gopls) SUCCEEDED
+
+All tools successfully installed. You are ready to Go. :)
+
 ```
 
 More information to the tools online:
@@ -127,6 +141,12 @@ Simple utility for extracting a JSON representation of the declarations in a Go
 source file.
 
 <https://github.com/ramya-rao-a/go-outline>
+
+##### Go Imports
+
+```shell
+go install golang.org/x/tools/cmd/goimports@latest
+```
 
 ##### Go Tests
 
@@ -225,9 +245,10 @@ integrated into your editor.
    configuration, e.g:
 
 ```shell
-export PATH="/usr/local/sbin:$PATH"
-export PATH="$HOME/.gobrew/current/bin:$HOME/.gobrew/bin:$PATH"
-export GOPATH=$HOME/go
+PATH="/usr/local/sbin:$PATH"
+PATH="$HOME/.gobrew/current/bin:$HOME/.gobrew/bin:$PATH"
+export GOPATH="$HOME/go"
+PATH="$GOPATH/bin:$PATH"
 ```
 
 If you want to use private packages and bypass proxy & co:
