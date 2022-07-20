@@ -26,6 +26,9 @@
 - [Basics](#basics)
   - [Pre-Conditions](#pre-conditions)
   - [Hello World](#hello-world)
+- [Development Environment](#development-environment)
+  - [Linting & Vetting](#linting-vetting)
+  - [Makefiles](#makefiles)
 
 <!-- /code_chunk_output -->
 
@@ -316,4 +319,72 @@ You can also use your GitHub repo as a module like:
 
 ```shell
 go mod init github.com/webia1/my-go-project
+```
+
+## Development Environment
+
+### Linting & Vetting
+
+`golint` lints the Go source files named on its command line.
+
+```shell
+go install golang.org/x/lint/golint@latest
+go lint ./...           # 3 DOTS
+```
+
+`vet` examines Go source code and reports suspicious constructs, such as Printf
+calls whose arguments do not align with the format string. Vet uses heuristics
+that do not guarantee all reports are genuine problems, but it can find errors
+not caught by the compilers.
+
+Vet is normally invoked through the go command. This command vets the package in
+the current directory (no installation required):
+
+```shell
+go vet                    # or
+go vet my/project/...     # or
+go vet ./...              # 3 DOTS!
+```
+
+`golangci-lint` combines `golint` and `go wet`, it runs linters in parallel,
+uses caching, supports yaml config, has integrations with all major IDE and has
+dozens of linters included. (Documentation: <https://golangci-lint.run/>)
+
+```shell
+brew install golangci-lint
+
+```
+
+### Makefiles
+
+> **Makefiles for Go Developers**:
+> <https://tutorialedge.net/golang/makefiles-for-go-developers/>
+
+Go developers have adopted `make` as their solution (save as `Makefile`):
+
+```Makefile
+.DEFAULT_GOAL := build
+
+fmt:
+    go fmt ./...
+.PHONY:fmt          # <-- Self chosen name for `fmt` part
+
+lint: fmt            # <-- `fmt` is the pre-condition for `lint`
+    golint ./...
+.PHONY:lint
+
+vet: fmt
+    go vet ./...
+.PHONY:vet
+```
+
+> A **`PHONY`** target is one that is not really the name of a file; rather it
+> is just a name for a recipe to be executed when you make an explicit request.
+> There are two reasons to use a phony target: to avoid a conflict with a file
+> of the same name, and to improve performance.
+
+Once the `Makefile` is in the `"src"` directory (any name can be chosen), type:
+
+```shell
+make
 ```

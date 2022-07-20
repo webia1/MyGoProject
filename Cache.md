@@ -156,3 +156,9 @@ go install https://github.com/rakyll/hey
 ```shell
 hey https://myserver.example.com
 ```
+
+## Visual Studio Code
+
+### Language Server
+
+Details here: <https://microsoft.github.io/language-server-protocol/>
