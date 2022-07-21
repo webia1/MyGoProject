@@ -16,6 +16,8 @@
   - [hey - Load Tests](#hey-load-tests)
     - [Installing](#installing)
     - [Usage](#usage-1)
+- [Visual Studio Code](#visual-studio-code)
+  - [Language Server](#language-server)
 
 <!-- /code_chunk_output -->
 

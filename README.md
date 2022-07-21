@@ -278,6 +278,11 @@ touch main.go
 
 ### Hello World
 
+A complete program is created by linking a single, unimported package called the
+`main package` with all the packages it imports, transitively. The main package
+must have package name main and `declare a function main` that takes no
+arguments and returns no value.
+
 ```go
 // main.go
 
@@ -353,6 +358,16 @@ dozens of linters included. (Documentation: <https://golangci-lint.run/>)
 ```shell
 brew install golangci-lint
 
+```
+
+`Staticcheck` is a state of the art linter for the Go programming language.
+Using static analysis, it finds bugs and performance issues, offers
+simplifications, and enforces style rules. <https://staticcheck.io/>.
+Configuration: <https://staticcheck.io/docs/configuration/>. (Installed by
+VSCode Tools or see below).
+
+```shell
+go install honnef.co/go/tools/cmd/staticcheck@latest
 ```
 
 ### Makefiles

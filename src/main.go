@@ -1,4 +1,4 @@
-package MyGoPackage
+package main
 
 import "fmt"
 
