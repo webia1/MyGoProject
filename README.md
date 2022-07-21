@@ -29,6 +29,22 @@
 - [Development Environment](#development-environment)
   - [Linting & Vetting](#linting-vetting)
   - [Makefiles](#makefiles)
+- [Types and Declarations](#types-and-declarations)
+  - [Common Concepts](#common-concepts)
+    - [Zero](#zero)
+    - [Literals](#literals)
+  - [Built-in Types](#built-in-types)
+    - [Booleans](#booleans)
+    - [Integer](#integer)
+      - [Signed integers in Go](#signed-integers-in-go)
+      - [Unsigned integers in Go](#unsigned-integers-in-go)
+      - [Type Conversion](#type-conversion)
+      - [Integer Operations](#integer-operations)
+    - [Floating Point Types](#floating-point-types)
+      - [Type Conversion](#type-conversion-1)
+      - [Complex Numbers](#complex-numbers)
+      - [Matrix (Matrizen)](#matrix-matrizen)
+    - [Strings](#strings)
 
 <!-- /code_chunk_output -->
 
@@ -393,6 +409,9 @@ vet: fmt
 .PHONY:vet
 ```
 
+**Makefiles are extremely picky:** You must indent the steps in a target with a
+`tab`.
+
 > A **`PHONY`** target is one that is not really the name of a file; rather it
 > is just a name for a recipe to be executed when you make an explicit request.
 > There are two reasons to use a phony target: to avoid a conflict with a file
@@ -403,3 +422,232 @@ Once the `Makefile` is in the `"src"` directory (any name can be chosen), type:
 ```shell
 make
 ```
+
+## Types and Declarations
+
+### Common Concepts
+
+#### Zero
+
+Variable is declared but not assigned a value.
+
+#### Literals
+
+- Integer Literals, based on 10, except:
+  - `Ob` binary
+  - `Oo` octal (0 with no letter after it is octal too, but don't use it)
+  - `0x` hexadecimal
+- Floating Point Literal
+  - e.g. 7.11e23
+  - `0x` hexadecimal
+  - `p` exponent
+  - `_` formatting big numbers
+- Rune Literals (Chars in JS)
+
+  - e.g. `('a')`, `('\171')`, `('\x47')`
+  - 16 Bit Hexadecimal `('\u0061')`
+  - 32 Bit Unicode `('\U00000061')`
+  - Newline `('\n')`
+  - Tabulator `('\t')`
+  - Octal (rare)
+
+- String Literals (very similar to JS)
+  - Double Quotes
+    - `"Hello World"`
+    - `"My \"Hello World\""` If double quotes within -> escape them
+  - or Backtick (also called Backquotes)
+    - In this case, you don't have to escape double quotes within strings:
+    - `` `My "Hello World"` ``
+
+### Built-in Types
+
+- boolean: `bool`
+- integer
+- float
+- string
+
+#### Booleans
+
+```go
+var myFlag bool       // no value assigned -> false
+var myFlag = true     // it is bool and true
+```
+
+#### Integer
+
+`NaN` -> Similar to JS
+
+> **Important:** If you assign a type and then use a number **larger than the
+> types range** to assign it, **it will fail**.
+
+> If you convert to a type that has range lower than your current range, **data
+> loss will occur**.
+
+Special name `byte` is an alias for `uint8`, and the other special name `int` is
+CPU dependent (e.g. int32 or int64).
+
+> There are some uncommon 64Bit CPU architectures with 32 bit signed integer: Go
+> supports: `amd64p32`, `mip64p32`, and `mips64p32le`
+
+> Go does not have generics and function overloadings (yet?).
+
+Source: <https://gosamples.dev/int-min-max/>
+
+To get the maximum and minimum value of various integer types in Go, use the
+[`math`](https://pkg.go.dev/math) package constants. For example, to get the
+minimum value of the `int64` type, which is **\-9223372036854775808**, use the
+[`math.MinInt64`](https://pkg.go.dev/math#pkg-constants) constant. To get the
+maximum value of the `int64` type, which is **9223372036854775807**, use the
+[`math.MaxInt64`](https://pkg.go.dev/math#pkg-constants). To check the minimum
+and maximum values of different int types, see the following example and its
+output.
+
+> For unsigned integer types, only the max constant is available because the
+> minimum value of unsigned types is always 0.
+
+##### Signed integers in Go
+
+Source: <https://golangdocs.com/integers-in-golang>
+
+Signed integer types supported by Go is shown below.
+
+```go
+int8    // is -128 to 127
+int16   // is -32768 to 32767
+int32   // is -2147483648 to 2147483647
+int64   // is -9223372036854775808 to 9223372036854775807
+```
+
+##### Unsigned integers in Go
+
+```go
+uint8   // 0 to 255
+uint16  // 0 to 65535
+uint32  // is 0 to 4294967295
+uint64  // 0 to 18446744073709551615
+```
+
+##### Type Conversion
+
+We do typecast by directly using the name of the variable as a function to
+convert types:
+
+```go
+package main
+
+import ("fmt")
+
+func main() {
+    var x int32
+    var y uint32     // range 0 to 4294967295
+    var z uint8      // range 0 to 255
+    fmt.Println("Type Conversion")
+    x = 26700
+    y = uint32(x)       // data preserved because number is inside range
+    z = uint8(x)        // data loss due to out of range conversion
+    fmt.Println(y, z)   // prints 26700 76
+}
+```
+
+##### Integer Operations
+
+- `+, -, *, /, % for modulus` Division by 0 causes so called `panic`
+- `==, !=, >, >=, <, <=` Comparisons
+- `<<, >>, &, |, ^, &^ ` Bit Manipulations (^ = XOR, &^ = AND NOT)
+
+#### Floating Point Types
+
+Go supports the `IEEE-754` 32-bit and 64-bit floating-point numbers. You can use
+all standard number operators with floats except `%`.
+
+IEEEE-754: <https://en.wikipedia.org/wiki/IEEE_754>
+
+> **Do not use them to represent money or whatever needs to have an exact
+> decimal representation**
+
+```go
+float32
+float64
+```
+
+Source: https://gosamples.dev/float64-min-max/
+
+The maximum value of the `float64` type in Go is
+**1.79769313486231570814527423731704356798070e+308** and you can get this value
+using the [`math.MaxFloat64`](https://pkg.go.dev/math#pkg-constants) constant.
+
+The minimum value above zero (smallest positive, non-zero value) of the
+`float64` type in Go is **4.9406564584124654417656879286822137236505980e-324**
+and you can get this value using the
+[`math.SmallestNonzeroFloat64`](https://pkg.go.dev/math#pkg-constants) constant.
+
+The maximum value of the `float32` type in Go is
+**3.40282346638528859811704183484516925440e+38** and you can get this value
+using the [`math.MaxFloat32`](https://pkg.go.dev/math#pkg-constants) constant.
+
+The minimum value above zero (smallest positive, non-zero value) of the
+`float32` type in Go is **1.401298464324817070923729583289916131280e-45** and
+you can get this value using the
+[`math.SmallestNonzeroFloat32`](https://pkg.go.dev/math#pkg-constants) constant.
+
+##### Type Conversion
+
+Loss of precision will occur when a 64-bit floating-point number is converted to
+32-bit float.
+
+Source: <https://golangdocs.com/floating-point-numbers-in-golang>
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    var f1 float32
+    var f2 float64
+
+    f2 = 1.234567890123
+    f1 = float32(f2)
+
+    fmt.Println(f1)         // prints "1.2345679"
+}
+```
+
+##### Complex Numbers
+
+Floating-point numbers are used in complex numbers as well. The real and
+imaginary parts are floats.
+
+More information: <https://golangdocs.com/complex-numbers-in-golang>
+
+```go
+package main
+
+import (
+	"fmt"
+	"math/cmplx"
+)
+
+func main() {
+	x := complex(2.5, 3.1)
+	y := complex(10.2, 2)
+	fmt.Println(x + y)
+	fmt.Println(x - y)
+	fmt.Println(x * y)
+	fmt.Println(x / y)
+	fmt.Println(real(x))
+	fmt.Println(imag(x))
+	fmt.Println(cmplx.Abs(x))
+}
+
+```
+
+##### Matrix (Matrizen)
+
+No matrix support :/
+
+#### Strings
+
+Similar to JS. `Zero value` is empty string.
