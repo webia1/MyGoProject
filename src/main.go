@@ -3,5 +3,10 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println(("Hello World"))
+
+	var x = [...]int{1, 2, 3}
+	x[0] = 10
+	fmt.Println(x)
+	fmt.Println(len(x))
+
 }
