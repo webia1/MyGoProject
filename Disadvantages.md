@@ -3,3 +3,5 @@
 - No Generics
 - No Function Overloading
 - Not for numerical computing
+- `:=` Re-Assigning can cause `Shadowing Variables`
+- No checks for unused constants

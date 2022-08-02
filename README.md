@@ -1,28 +1,16 @@
 # GoLang
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=6 orderedList=false} -->
+Own Notices
+
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=4 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
 - [Getting Started](#getting-started)
   - [Install Go via Brew](#install-go-via-brew)
   - [Uninstall Go](#uninstall-go)
-    - [If previously installed via Brew](#if-previously-installed-via-brew)
-    - [If previously installed via Pkgutil](#if-previously-installed-via-pkgutil)
   - [Go Versions Manager](#go-versions-manager)
-    - [Installing](#installing)
-    - [ENV VARIABLES (Important for VSCode)](#env-variables-important-for-vscode)
   - [VsCode Install/Update Tools](#vscode-installupdate-tools)
-    - [Go Ppkgs](#go-ppkgs)
-    - [Go Outline](#go-outline)
-    - [Go Imports](#go-imports)
-    - [Go Tests](#go-tests)
-    - [Go Modify Tags](#go-modify-tags)
-    - [Go Impl](#go-impl)
-    - [Go Play Ground Client](#go-play-ground-client)
-    - [Go Delve](#go-delve)
-    - [Go Tools from Dominik Honnef: Go `staticcheck`](#go-tools-from-dominik-honnef-go-staticcheck)
-    - [gopls, the Go Language Server](#gopls-the-go-language-server)
 - [Basics](#basics)
   - [Pre-Conditions](#pre-conditions)
   - [Hello World](#hello-world)
@@ -32,19 +20,26 @@
 - [Types and Declarations](#types-and-declarations)
   - [Common Concepts](#common-concepts)
     - [Zero](#zero)
+    - [var vs. `:=`](#var-vs)
+    - [Explicit Type Conversion (= Automatic Type Promotion)](#explicit-type-conversion-automatic-type-promotion)
     - [Literals](#literals)
   - [Built-in Types](#built-in-types)
     - [Booleans](#booleans)
     - [Integer](#integer)
-      - [Signed integers in Go](#signed-integers-in-go)
-      - [Unsigned integers in Go](#unsigned-integers-in-go)
-      - [Type Conversion](#type-conversion)
-      - [Integer Operations](#integer-operations)
     - [Floating Point Types](#floating-point-types)
-      - [Type Conversion](#type-conversion-1)
-      - [Complex Numbers](#complex-numbers)
-      - [Matrix (Matrizen)](#matrix-matrizen)
     - [Strings](#strings)
+  - [Const](#const)
+  - [Unused Variables & Constants](#unused-variables-constants)
+  - [Naming Variables and Constants](#naming-variables-and-constants)
+- [Composite Types](#composite-types)
+  - [Arrays](#arrays)
+  - [Slices](#slices)
+    - [append (similar to push in JS)](#append-similar-to-push-in-js)
+    - [Runtime Capacity](#runtime-capacity)
+    - [make](#make)
+    - [`nil` vs `zero` Declarations](#nil-vs-zero-declarations)
+    - [Slice-slicing](#slice-slicing)
+    - [Sharing Memory](#sharing-memory)
 
 <!-- /code_chunk_output -->
 
@@ -429,7 +424,53 @@ make
 
 #### Zero
 
-Variable is declared but not assigned a value.
+Variable is declared but not assigned a value. (Like `null` in JS)
+
+#### var vs. `:=`
+
+```go
+var x int = 10          // is the same like
+var x = 10              // because it is assigned, no need for type
+x := 10                 // is the same like the two declarations above
+var x int               // something like "let x: int = null" in TS
+var x, y int = 10, 20   // more than one declarations
+var x, y int            // with zero values
+var x, y = 10, "Hi"     // with different types
+x, y := 10, "Hi"        // same like above
+
+// also a "declaration list" would be possible
+
+var (
+  a     int
+  b           = 20
+  c     int   = 30
+  d, e        = 40, "Hi"
+  f, g  string
+)
+```
+
+The `:=` operator can reassign (not possible by using `var`):
+
+```go
+x     := 10
+x, y  := 30, "Hi"
+```
+
+One limitation for `:=`: At package level you must use var because it is not
+legal outside of functions.
+
+**Important notices:**
+
+- Initialisation with zero values -> better `var` than `:=`
+- prefer something like `var x byte = 20` to `x := byte(20)`
+- `:=` allows you to reassign too. Attention: &rarr; `Shadowing Variables`
+
+_**As a general rule: Declare variables in the package block that are
+effectively immutable.**_
+
+#### Explicit Type Conversion (= Automatic Type Promotion)
+
+Go doesn't allow automatic type conversion, when variable types do not match.
 
 #### Literals
 
@@ -651,3 +692,363 @@ No matrix support :/
 #### Strings
 
 Similar to JS. `Zero value` is empty string.
+
+### Const
+
+Very similar to TS. Constants can be typed or untyped.
+
+If constants are untyped e.g. the following is allowed:
+
+```go
+// it is a number but there is no specific type
+const x = 10;
+
+// therefore the following assignments are OK
+var a int = x       // OK
+var b float64 = x   // OK
+var c byte = x      // OK
+```
+
+But if you give a type to it, you have to consider:
+
+```go
+// it is an integer
+const x int = 10;
+var a int = x       // OK
+var b float64 = x   // not OK because int != float
+```
+
+### Unused Variables & Constants
+
+Every declared local variable must be read. It is a compile-time error to
+declare a local variable and to not read its value.
+
+But the compiler's unused-variable-check is not precise enough; it accepts a
+single read, even if there were writes afterwards, same with `go vet`. But
+`golangci-lint` can detect them.
+
+The Go compiler does not prevent you from creating unread
+package-level-variables.
+
+Suprisingly: Unused constants are OK :)
+
+### Naming Variables and Constants
+
+Very similar to JS/TS, any Unicode (letter/digit) is allowed. See other parts
+above (e.g. begining with digit).
+
+`_` is a valid character but Go prefers `camelCase` instead of `snake_case`.
+
+> And undercore `_` by itself is a special identifier name in Go (ignoring a
+> parameter, or prop etc., see examples in the coming sections).
+
+Preferred Go Style (as short as possible within block code):
+
+- k, v &rarr; key, value
+- i, j &rarr; common names for index variables
+
+## Composite Types
+
+### Arrays
+
+> Completely different than arrays in JS/TS
+
+Confusing definition (By Jon Bodner): "All of the elements in the array must be
+of the type that's specified but this does not mean they are always of the same
+type". Another quote: **Don't use arrays unless you know the exact length you
+need ahead of time.**
+
+```go
+var x [3]int                // 3 is the size of the array
+                            // No values specified, i.e -> x = [0,0,0]
+                            // Zero value for int is 0
+
+var x = [3]int{10, 20, 30} // Values set
+
+
+
+// Here is a so called sparse array :)
+
+var x = [8]int{1, 3: 7, 5, 6: 8, 9}  // [1 0 0 7 5 0 8 9]
+
+/**
+  First value (index 0) is 1,
+  7 is index no 3 (the next one, has the next index no)
+  5 is index no 4,
+  8 is index no 6 and so on, that means
+  9 is the index no 7
+  everything else is 0
+*/
+
+// You can also leave off number by using `...`
+
+var x = [...]int{1, 2, 3}
+
+x[0] = 10
+fmt.Println(x)       // [10 2 3]
+fmt.Println(len(x))  // 3
+
+// Simulating more dimensional arrays:
+// 2 arrays of length 3 with zero values
+
+var x [2][3]int  // [[0 0 0] [0 0 0]]  -> How to modify them, see link below:
+
+```
+
+See more about: <https://codezup.com/arrays-in-golang-multi-dimensional-arrays/>
+
+### Slices
+
+> Slices looks like arrays with some differences (notice the missing `...`).
+
+> **Zero value for a slice** is **`nil`** (and not `0`).
+
+> (To my mind: Zero is something like `null` in JS, `nil` is like `undefined`)
+
+```go
+var x = [...]int{1, 2, 3}               // --> ARRAY
+var x = []int{1, 2, 3}                  // --> SLICE
+
+var x = [8]int{1, 3: 7, 5, 6: 8, 9}     // --> ARRAY
+var x = []int{1, 3: 7, 5, 6: 8, 9}      // --> SLICE
+
+var x [2][3]int                         // --> ARRAY
+var x [][]int                           // --> SLICE
+```
+
+**The only thing you can compare a slice with is `nil`.** The `reflect package`
+contains a function calles `DeepEqual` can compare almost anything, including
+slices.
+
+```go
+var x []int
+fmt.Println (x == nil) // true
+```
+
+#### append (similar to push in JS)
+
+`...` like spread operator in JS but different syntax (postfix instead of
+prefix).
+
+> It is a compile-time error if you forget to assign the value returned from
+> append. (Go is a **`call by value`** language &rarr; no object references like
+> in JS, but real copies)
+
+```go
+var x = []int{1, 2, 3}
+x = append(x, 10)         // [1 2 3 10]
+x = append(x, 5, 7, 9)    // [1 2 3 10 5 7 9]
+y := []int{20, 30, 40}
+x = append(x, y...)       // [1 2 3 10 5 7 9 20 30 40]
+
+```
+
+#### Runtime Capacity
+
+Runtime capacity is like in C++:
+
+> The rules as of Go 1.14 are to double the size of the slice when the capacity
+> is less than 1,024 and then grow by at least 25% afterward.
+
+Just as the built-in **`len`** function returns the current length of a slice,
+the built-in **`cap`** function returns the current capacity of a slice. It is
+used far less frequently than len.
+
+Cap is typically used to determine whether a slice is big enough to accommodate
+new data or whether a call to make is required to create a new slice.
+
+> The cap function also accepts an array as a parameter, although for arrays,
+> cap always returns the same value as len.
+
+```go
+var x []int
+fmt.Println(x, len(x), cap(x))
+x = append(x, 10)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 11)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 12)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 13)
+fmt.Println(x, len(x), cap(x))
+x = append(x, 14)
+fmt.Println(x, len(x), cap(x))
+```
+
+**outputs:**
+
+```shell
+[] 0 0
+[10] 1 1
+[10 11] 2 2
+[10 11 12] 3 4
+[10 11 12 13] 4 4
+[10 11 12 13 14] 5 8
+```
+
+#### make
+
+The built-in `make` function is responsible for creating an empty slice with a
+specified length or capacity.
+
+> Your program will panic at runtime if you use a variable to set a capacity
+> that is less than the length.
+
+```go
+x := make([]int, 5)         // length of 5 and a capacity of 5.
+x := make([]int, 5, 10)     // length of 5 and a capacity of 10.
+
+
+/** The following is tricky:
+We cannot directly index into it because it has length 0,
+but we can append values to it instead:
+*/
+
+x := make([]int, 0, 10)     // length of 0 and a capacity of 10.
+x = append(x, 1, 3, 7)
+
+```
+
+A slice's length always increases after an `append`! Make sure that you set the
+slice's length before using the `make`; otherwise, your slice may start off with
+a surprising number of zero values.
+
+#### `nil` vs `zero` Declarations
+
+```go
+
+// import fmt and reflect before
+
+var data []int            // nil slice declaration
+var data  = []int{}       // empty slice with zero-length
+
+var x []int
+var y = []int{}
+
+fmt.Println(x, len(x))	  // [] 0  Debugger:  []int len: 0, cap: 0, nil
+fmt.Println(y, len(y))	  // [] 0  Debugger:  []int len: 0, cap: 0, []
+
+fmt.Println(x == nil)     // true
+fmt.Println(y == nil)     // false
+
+fmt.Println(reflect.TypeOf(x))                      // []int
+fmt.Println(reflect.TypeOf(y))                      // []int
+fmt.Println(reflect.TypeOf(y) == reflect.TypeOf(x)) // true
+
+fmt.Println(reflect.ValueOf(x).Kind()) // slice
+fmt.Println(reflect.ValueOf(y).Kind()) // slice
+
+/**
+  You cannot compare x == y
+  invalid operation: cannot compare x == y
+  (var x []int -> slice can only be compared to nil)
+  compilerUndefinedOp
+*/
+
+// It is possible to create an int slice
+// with zero length but greater capacity:
+
+z := make([]int, 0, 10)		// Debugger: []int len: 0, cap: 10, []
+fmt.Println(z, len(z), cap(z))  // [] 0 10
+
+/**
+Since its length is 0, we cannot directly
+index into it, but we can append values to it:
+*/
+
+z := make([]int, 0, 10)
+z = append(x,3,5,7); // []int len: 3, cap: 3, [3,5,7]
+
+Same with nil-able declarations:
+
+var v []int             // []]int len: 0, cap: 0, nil
+v = append(v, 3, 5, 7)  // []int len: 3, cap: 3, [3,5,7]
+
+```
+
+Use `make` if you roughly know how big your slice needs to be but don't know
+what values it will get.
+
+The question is:
+
+- whether you should specify a `nonzero length` or
+- a `zero-length and a nonzero capacity` in the call to make.
+
+There are three alternatives:
+
+1. Slice as buffer &rarr; nonzero length
+2. You know the size &rarr; specity the length and index into it. But if the set
+   size was not big enough, you will get `panic`.
+3. Or specify zero length, nonzero capacity and append to it. If the real size
+   is smaller then there will be zero values at the end of the slice, if larger,
+   your code will not panic.
+
+#### Slice-slicing
+
+See the following `slice expressions` that creates a slice form a slice:
+
+```go
+//            0  1  2  3  4
+var x = []int{2, 3, 5, 7, 9}
+var a = x[:3]   // 0 (incl) till 3 (excl) -> [2 3 5]
+var b = x[2:]   // 2 (incl) till end  -> [5 7 9]
+var c = x[1:4]  // 1 (incl) till 4 (excl)  -> [3 5 7]
+var d = x[:] // all -> [2 3 5 7 9]
+```
+
+#### Sharing Memory
+
+Important: Slices are not copies, they are references.
+
+```go
+var x = []int{2, 3, 5, 7, 9}
+var b = x[0:2]
+x[0] = 100
+
+fmt.Println(x)  // [100 3 5 7 9]
+fmt.Println(b)  // [100 3]
+```
+
+Many funny things happen:
+
+```go
+var x = []int{2, 3, 5, 7, 9}
+var b = x[:2]
+
+fmt.Println(cap(x), cap(b))   // 5 5
+
+x[0] = 100
+b = append(b, 30)
+
+fmt.Println("x:", x)    // x: [100 3 30 7 9]
+fmt.Println("b:", b)    // b: [100 3 30]
+```
+
+A more confusing example:
+
+> Never `append` to a `slice`, or use the trick after the example below.
+
+```go
+x := make([]int, 0, 10)
+x = append(x, 3, 5, 7, 9)
+b := x[:2]
+c := x[2:]
+
+fmt.Println("x:", x)        // x: [3 5 7 9]
+fmt.Println("b:", b)        // b: [3 5]
+fmt.Println("c:", c)        // c: [7 9]
+
+b = append(b, 20, 30, 40)
+x = append(x, 11)
+c = append(c, 13)
+
+fmt.Println("x:", x)        // x: [3 5 20 30 13]
+fmt.Println("b:", b)        // b: [3 5 20 30 13]
+fmt.Println("c:", c)        // c: [20 30 13]
+```
+
+Notice the 3rd parameter in the slide expression:
+
+```go
+
+```
