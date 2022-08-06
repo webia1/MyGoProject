@@ -1026,7 +1026,8 @@ fmt.Println("b:", b)    // b: [100 3 30]
 
 A more confusing example:
 
-> Never `append` to a `slice`, or use the trick after the example below.
+> Never `append` to a `slice`, or use the trick (third parameter with position)
+> after the example below.
 
 ```go
 x := make([]int, 0, 10)
@@ -1050,5 +1051,5 @@ fmt.Println("c:", c)        // c: [20 30 13]
 Notice the 3rd parameter in the slide expression:
 
 ```go
-
+//
 ```
