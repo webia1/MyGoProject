@@ -1054,7 +1054,7 @@ Notice the 3rd parameter in the slide expression: We limit the capacity of the
 subslices to their length.
 
 ```go
-	x := make([5]int, 0, 10)
+	x := make([]int, 0, 10)
 	x = append(x, 3, 5, 7, 9)
 
 	b := x[:2:2]          // <-- 3rd parameter
@@ -1065,6 +1065,7 @@ subslices to their length.
 	fmt.Println("c:", c)  // c: [7 9]
 
 	b = append(b, 20, 30, 40)
+	x = append(x, 11)
 	c = append(c, 13)
 
 	fmt.Println("x:", x)  // x: [3 5 7 9 11]
@@ -1087,18 +1088,19 @@ above, using third parameter helps here too).
 	fmt.Println("c:", c)          // c: [5 7]
 
 	b = append(b, 20, 30, 40)
+//	x = append(x, 11)  // you cannot append to an array
 	c = append(c, 13)
 
-	fmt.Println("x:", x)          // x: [1 3 20 30 13]
-	fmt.Println("b:", b)          // b: [1 3 20 30 13]
-	fmt.Println("c:", c)          // c: [20 30 13]
+	fmt.Println("x:", x)          // x: [1 3 5 7 9]
+	fmt.Println("b:", b)          // b: [1 3 20 30 40]
+	fmt.Println("c:", c)          // c: [5 7 13]
 ```
 
 without the 3rd param you will get surprising results (like it is the case with
 slices). The same example above this time without the 3rd param:
 
 ```go
-	x := []int{1, 3, 5, 7, 9}
+	x := [5]int{1, 3, 5, 7, 9}
 	b := x[:2]
 	c := x[2:4]
 
@@ -1107,15 +1109,51 @@ slices). The same example above this time without the 3rd param:
 	fmt.Println("c:", c)            // c: [5 7]
 
 	b = append(b, 20, 30, 40)
-	x = append(x, 11)
+//	x = append(x, 11)  // you cannot append to an array
 	c = append(c, 13)
 
-	fmt.Println("x:", x)            // x: [1 3 20 30 40 11]
+	fmt.Println("x:", x)            // x: [1 3 20 30 13]
 	fmt.Println("b:", b)            // b: [1 3 20 30 13]
 	fmt.Println("c:", c)            // c: [20 30 13]
 ```
 
 #### `copy` helps you to avoid memory sharing problems
 
-The trick here: If the size different, it begins to copy from left (from the
-beginning):
+Same size:
+
+```go
+	a := []int{1, 3, 5, 7, 9}
+	b := make([]int, 5)
+
+	x := copy(b, a)         // (destination <- source)
+
+	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+	fmt.Println("b:", b)    // b: [1 3 5 7 9] destination
+	fmt.Println("x:", x)    // x: 5 (number of copied elems)
+```
+
+Smaller size: from the beginning of source array
+
+```go
+	a := []int{1, 3, 5, 7, 9}
+	b := make([]int, 2)
+
+	x := copy(b, a)
+
+	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+	fmt.Println("b:", b)    // b: [1 3] destination
+	fmt.Println("x:", x)    // x: 2 (number of copied elems)
+```
+
+Bigger size: zero values at the end
+
+```go
+	a := []int{1, 3, 5, 7, 9}
+	b := make([]int, 7)
+
+	x := copy(b, a)
+
+	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+	fmt.Println("b:", b)    // b: [1 3 5 7 9 0 0] destination
+	fmt.Println("x:", x)    // x: 5 (number of copied elems)
+```
