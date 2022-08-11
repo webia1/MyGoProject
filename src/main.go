@@ -7,14 +7,13 @@ import (
 
 func main() {
 
-	a := []int{1, 3, 5, 7, 9}
-	b := make([]int, 7)
+	myMap1 := make(map[int][]string, 10)
+	myMap2 := make(map[string]int, 10)
 
-	x := copy(b, a)
+	myMap1[13] = []string{"Hi", "there"}
+	myMap2["foo"] = 4716
 
-	fmt.Println("a:", a)
-	fmt.Println("b:", b)
-	fmt.Println("x:", x)
+	fmt.Println(myMap1, myMap2)
 
 	fmt.Println("Before Programm End")
 

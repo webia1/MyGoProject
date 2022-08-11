@@ -42,6 +42,11 @@ Own Notices
     - [Sharing Memory](#sharing-memory)
     - [Converting Array to Slices](#converting-array-to-slices)
     - [`copy` helps you to avoid memory sharing problems](#copy-helps-you-to-avoid-memory-sharing-problems)
+  - [Strings, Runes, Bytes](#strings-runes-bytes)
+    - [Conversion](#conversion)
+    - [Strings to Slices](#strings-to-slices)
+  - [Maps](#maps)
+    - [With `make`](#with-make)
 
 <!-- /code_chunk_output -->
 
@@ -1054,23 +1059,23 @@ Notice the 3rd parameter in the slide expression: We limit the capacity of the
 subslices to their length.
 
 ```go
-	x := make([]int, 0, 10)
-	x = append(x, 3, 5, 7, 9)
+x := make([]int, 0, 10)
+x = append(x, 3, 5, 7, 9)
 
-	b := x[:2:2]          // <-- 3rd parameter
-	c := x[2:4:4]         // <-- 3rd parameter
+b := x[:2:2]          // <-- 3rd parameter
+c := x[2:4:4]         // <-- 3rd parameter
 
-	fmt.Println("x:", x)  // x: [3 5 7 9]
-	fmt.Println("b:", b)  // b: [3 5]
-	fmt.Println("c:", c)  // c: [7 9]
+fmt.Println("x:", x)  // x: [3 5 7 9]
+fmt.Println("b:", b)  // b: [3 5]
+fmt.Println("c:", c)  // c: [7 9]
 
-	b = append(b, 20, 30, 40)
-	x = append(x, 11)
-	c = append(c, 13)
+b = append(b, 20, 30, 40)
+x = append(x, 11)
+c = append(c, 13)
 
-	fmt.Println("x:", x)  // x: [3 5 7 9 11]
-	fmt.Println("b:", b)  // b: [3 5 20 30 40]
-	fmt.Println("c:", c)  // c: [7 9 13]
+fmt.Println("x:", x)  // x: [3 5 7 9 11]
+fmt.Println("b:", b)  // b: [3 5 20 30 40]
+fmt.Println("c:", c)  // c: [7 9 13]
 ```
 
 #### Converting Array to Slices
@@ -1079,81 +1084,213 @@ You can take a slice from an Array too (same problems - memory sharing - see
 above, using third parameter helps here too).
 
 ```go
-	x := [5]int{1, 3, 5, 7, 9}
-	b := x[:2:2]
-	c := x[2:4:4]
+x := [5]int{1, 3, 5, 7, 9}
+b := x[:2:2]
+c := x[2:4:4]
 
-	fmt.Println("x:", x)          // x: [1 3 5 7 9]
-	fmt.Println("b:", b)          // b: [1 3]
-	fmt.Println("c:", c)          // c: [5 7]
+fmt.Println("x:", x)          // x: [1 3 5 7 9]
+fmt.Println("b:", b)          // b: [1 3]
+fmt.Println("c:", c)          // c: [5 7]
 
-	b = append(b, 20, 30, 40)
+b = append(b, 20, 30, 40)
 //	x = append(x, 11)  // you cannot append to an array
-	c = append(c, 13)
+c = append(c, 13)
 
-	fmt.Println("x:", x)          // x: [1 3 5 7 9]
-	fmt.Println("b:", b)          // b: [1 3 20 30 40]
-	fmt.Println("c:", c)          // c: [5 7 13]
+fmt.Println("x:", x)          // x: [1 3 5 7 9]
+fmt.Println("b:", b)          // b: [1 3 20 30 40]
+fmt.Println("c:", c)          // c: [5 7 13]
 ```
 
 without the 3rd param you will get surprising results (like it is the case with
 slices). The same example above this time without the 3rd param:
 
 ```go
-	x := [5]int{1, 3, 5, 7, 9}
-	b := x[:2]
-	c := x[2:4]
+x := [5]int{1, 3, 5, 7, 9}
+b := x[:2]
+c := x[2:4]
 
-	fmt.Println("x:", x)            // x: [1 3 5 7 9]
-	fmt.Println("b:", b)            // b: [1 3]
-	fmt.Println("c:", c)            // c: [5 7]
+fmt.Println("x:", x)            // x: [1 3 5 7 9]
+fmt.Println("b:", b)            // b: [1 3]
+fmt.Println("c:", c)            // c: [5 7]
 
-	b = append(b, 20, 30, 40)
+b = append(b, 20, 30, 40)
 //	x = append(x, 11)  // you cannot append to an array
-	c = append(c, 13)
+c = append(c, 13)
 
-	fmt.Println("x:", x)            // x: [1 3 20 30 13]
-	fmt.Println("b:", b)            // b: [1 3 20 30 13]
-	fmt.Println("c:", c)            // c: [20 30 13]
+fmt.Println("x:", x)            // x: [1 3 20 30 13]
+fmt.Println("b:", b)            // b: [1 3 20 30 13]
+fmt.Println("c:", c)            // c: [20 30 13]
 ```
 
 #### `copy` helps you to avoid memory sharing problems
 
-Same size:
+##### Same size:
 
 ```go
-	a := []int{1, 3, 5, 7, 9}
-	b := make([]int, 5)
+a := []int{1, 3, 5, 7, 9}
+b := make([]int, 5)
 
-	x := copy(b, a)         // (destination <- source)
+x := copy(b, a)         // (destination <- source)
 
-	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
-	fmt.Println("b:", b)    // b: [1 3 5 7 9] destination
-	fmt.Println("x:", x)    // x: 5 (number of copied elems)
+fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+fmt.Println("b:", b)    // b: [1 3 5 7 9] destination
+fmt.Println("x:", x)    // x: 5 (number of copied elems)
 ```
 
-Smaller size: from the beginning of source array
+##### Smaller size: from the beginning of source array
 
 ```go
-	a := []int{1, 3, 5, 7, 9}
-	b := make([]int, 2)
+a := []int{1, 3, 5, 7, 9}
+b := make([]int, 2)
 
-	x := copy(b, a)
+x := copy(b, a)
 
-	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
-	fmt.Println("b:", b)    // b: [1 3] destination
-	fmt.Println("x:", x)    // x: 2 (number of copied elems)
+fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+fmt.Println("b:", b)    // b: [1 3] destination
+fmt.Println("x:", x)    // x: 2 (number of copied elems)
 ```
 
-Bigger size: zero values at the end
+##### Bigger size: zero values at the end
 
 ```go
-	a := []int{1, 3, 5, 7, 9}
-	b := make([]int, 7)
+a := []int{1, 3, 5, 7, 9}
+b := make([]int, 7)
 
-	x := copy(b, a)
+x := copy(b, a)
 
-	fmt.Println("a:", a)    // a: [1 3 5 7 9] source
-	fmt.Println("b:", b)    // b: [1 3 5 7 9 0 0] destination
-	fmt.Println("x:", x)    // x: 5 (number of copied elems)
+fmt.Println("a:", a)    // a: [1 3 5 7 9] source
+fmt.Println("b:", b)    // b: [1 3 5 7 9 0 0] destination
+fmt.Println("x:", x)    // x: 5 (number of copied elems)
+```
+
+##### From anywhere of the source slice
+
+```go
+a := []int{1, 3, 5, 7, 9}
+b := make([]int, 2)
+
+x := copy(b, a[3:])
+
+fmt.Println("a:", a)    // a: [1 3 5 7 9]
+fmt.Println("b:", b)    // b: [7 9]
+fmt.Println("x:", x)    // x: 2
+```
+
+##### From overlapping sections of the source slice to the source slice (copy and replace within)
+
+Try out to explain it :)
+
+```go
+a := []int{1, 3, 5, 7, 9, 11, 13}
+
+x := copy(a[:3], a[3:])
+
+fmt.Println("a:", a)  // a: [7 9 11 7 9 11 13]
+fmt.Println("x:", x)  // x: 3
+```
+
+Explanation:
+
+```text
+1  3  5  replace with 7 9 11 13
+different size therefore sub-result => 7 9 11
+
+0  1  2  3  4  5  6
+1  3  5  7  9  11 13
+7  9  11 7  9  11 13  <- result
+```
+
+Second Example:
+
+```go
+a := []int{1, 3, 5, 7, 9, 11, 13}
+
+x := copy(a[4:], a[1:4])
+
+fmt.Println("a:", a) // [1 3 5 7 3 5 7]
+fmt.Println("x:", x) // 3
+```
+
+### Strings, Runes, Bytes
+
+Strings (re-assignable but immutable) have no capacity only length, written
+within double quotes. Runes has no length, written within single quotes.
+
+```go
+str := "Hello World 🫢"
+r := 'h'
+
+fmt.Println(str, len(str), r, string(r))
+// Hello World 11 104 h
+```
+
+```go
+var a string = "Hi there"
+var b byte = a[6]
+var x string = a[3:]
+
+fmt.Println(a, b, x) // Hi there 114 there
+```
+
+#### Conversion
+
+In general: Take care of the length!
+
+```go
+str := "Oh 🫢"        // Smiley is 4 bytes
+fmt.Println(len(str)) // 7
+```
+
+#### Strings to Slices
+
+> Slices of runes -> uncommon
+
+```go
+var str string = "Oh 🫢"
+var x []byte = []byte(str)
+var y []rune = []rune(str)
+fmt.Println(x, y)
+
+  // outputs
+  // [79 104 32 240 159 171 162] [79 104 32 129762]
+
+  // UTF8: little-endian versus big-endian -> no problems here
+
+```
+
+### Maps
+
+The zero value for a `map` is `nil`.
+
+`map[keyType]valueType:`
+
+```go
+var myFirstMap = map[string]int{
+  "foo": 0,  // Attention: Comma is always required
+}
+
+var mySecondMap = map[string][]string{
+  "foo": {"one", "two"},
+  "bar": {"one", "two", "three"}, // Attention: Comma required
+}
+
+fmt.Println(myFirstMap, mySecondMap)
+// map[foo:0] map[bar:[one two three] foo:[one two]]
+```
+
+#### With `make`
+
+```go
+	myMap1 := make(map[int][]string, 10)
+	myMap2 := make(map[string]int, 10)
+
+	myMap1[13] = []string{"Hi", "there"}
+	myMap2["foo"] = 4716
+
+	fmt.Println(myMap1, myMap2)
+
+  // map[13:[Hi there]]
+  // map[foo:4716]
+
+
 ```
