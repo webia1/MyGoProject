@@ -40,6 +40,8 @@ Own Notices
     - [`nil` vs `zero` Declarations](#nil-vs-zero-declarations)
     - [Slice-slicing](#slice-slicing)
     - [Sharing Memory](#sharing-memory)
+    - [Converting Array to Slices](#converting-array-to-slices)
+    - [`copy` helps you to avoid memory sharing problems](#copy-helps-you-to-avoid-memory-sharing-problems)
 
 <!-- /code_chunk_output -->
 
@@ -1026,8 +1028,8 @@ fmt.Println("b:", b)    // b: [100 3 30]
 
 A more confusing example:
 
-> Never `append` to a `slice`, or use the trick (third parameter with position)
-> after the example below.
+> Never `append` to a `slice` if you want to avoid surprises, or use the trick
+> (third parameter with position) after the example below.
 
 ```go
 x := make([]int, 0, 10)
@@ -1048,8 +1050,72 @@ fmt.Println("b:", b)        // b: [3 5 20 30 13]
 fmt.Println("c:", c)        // c: [20 30 13]
 ```
 
-Notice the 3rd parameter in the slide expression:
+Notice the 3rd parameter in the slide expression: We limit the capacity of the
+subslices to their length.
 
 ```go
-//
+	x := make([5]int, 0, 10)
+	x = append(x, 3, 5, 7, 9)
+
+	b := x[:2:2]          // <-- 3rd parameter
+	c := x[2:4:4]         // <-- 3rd parameter
+
+	fmt.Println("x:", x)  // x: [3 5 7 9]
+	fmt.Println("b:", b)  // b: [3 5]
+	fmt.Println("c:", c)  // c: [7 9]
+
+	b = append(b, 20, 30, 40)
+	c = append(c, 13)
+
+	fmt.Println("x:", x)  // x: [3 5 7 9 11]
+	fmt.Println("b:", b)  // b: [3 5 20 30 40]
+	fmt.Println("c:", c)  // c: [7 9 13]
 ```
+
+#### Converting Array to Slices
+
+You can take a slice from an Array too (same problems - memory sharing - see
+above, using third parameter helps here too).
+
+```go
+	x := [5]int{1, 3, 5, 7, 9}
+	b := x[:2:2]
+	c := x[2:4:4]
+
+	fmt.Println("x:", x)          // x: [1 3 5 7 9]
+	fmt.Println("b:", b)          // b: [1 3]
+	fmt.Println("c:", c)          // c: [5 7]
+
+	b = append(b, 20, 30, 40)
+	c = append(c, 13)
+
+	fmt.Println("x:", x)          // x: [1 3 20 30 13]
+	fmt.Println("b:", b)          // b: [1 3 20 30 13]
+	fmt.Println("c:", c)          // c: [20 30 13]
+```
+
+without the 3rd param you will get surprising results (like it is the case with
+slices). The same example above this time without the 3rd param:
+
+```go
+	x := []int{1, 3, 5, 7, 9}
+	b := x[:2]
+	c := x[2:4]
+
+	fmt.Println("x:", x)            // x: [1 3 5 7 9]
+	fmt.Println("b:", b)            // b: [1 3]
+	fmt.Println("c:", c)            // c: [5 7]
+
+	b = append(b, 20, 30, 40)
+	x = append(x, 11)
+	c = append(c, 13)
+
+	fmt.Println("x:", x)            // x: [1 3 20 30 40 11]
+	fmt.Println("b:", b)            // b: [1 3 20 30 13]
+	fmt.Println("c:", c)            // c: [20 30 13]
+```
+
+#### `copy` helps you to avoid memory sharing problems
+
+The trick here: If the size different, it begins to copy from left (from the
+beginning):
