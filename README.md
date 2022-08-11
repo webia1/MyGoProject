@@ -47,6 +47,8 @@ Own Notices
     - [Strings to Slices](#strings-to-slices)
   - [Maps](#maps)
     - [With `make`](#with-make)
+    - [`ok` &rarr; Comma `ok` idiom](#ok-rarr-comma-ok-idiom)
+    - [Deleting](#deleting)
 
 <!-- /code_chunk_output -->
 
@@ -1260,9 +1262,18 @@ fmt.Println(x, y)
 
 ### Maps
 
-The zero value for a `map` is `nil`.
+The zero value for a `map` is `nil`. Maps are not comparable. You can only check
+if they are equal to `nil`.
+
+`len` is OK. Key can be any comparable type.
 
 `map[keyType]valueType:`
+
+If we want to read a value of a non-existing key, we get its zero value (e.g. if
+`int` &rarr; 0).
+
+> you can use ++ increment operator to increment the numeric value for a map
+> key. (&rarr; Example)
 
 ```go
 var myFirstMap = map[string]int{
@@ -1292,5 +1303,50 @@ fmt.Println(myFirstMap, mySecondMap)
   // map[13:[Hi there]]
   // map[foo:4716]
 
+```
 
+#### `ok` &rarr; Comma `ok` idiom
+
+It can be any literal, must not be `ok` only.
+
+```go
+myMap1 := map[string]int{
+  "foo": 7,
+  "bar": 11,
+}
+
+value, ok := myMap1["foo"]
+fmt.Println(myMap1, value, ok)
+
+value, ok = myMap1["bar"]
+fmt.Println(myMap1, value, ok)
+
+value, ok = myMap1["what"]
+fmt.Println(myMap1, value, ok)
+
+// outputs
+// map[bar:11 foo:7] 7 true
+// map[bar:11 foo:7] 11 true
+// map[bar:11 foo:7] 0 false
+
+```
+
+#### Deleting
+
+```go
+	myMap1 := map[string]int{
+		"foo": 7,
+		"bar": 11,
+		"baz": 2014,
+	}
+
+	delete(myMap1, "baz")
+
+	fmt.Println(myMap1) // map[bar:11 foo:7]
+```
+
+#### Maps as Sets
+
+```go
+//
 ```

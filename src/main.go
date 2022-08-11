@@ -7,13 +7,15 @@ import (
 
 func main() {
 
-	myMap1 := make(map[int][]string, 10)
-	myMap2 := make(map[string]int, 10)
+	myMap1 := map[string]int{
+		"foo": 7,
+		"bar": 11,
+		"baz": 2014,
+	}
 
-	myMap1[13] = []string{"Hi", "there"}
-	myMap2["foo"] = 4716
+	delete(myMap1, "baz")
 
-	fmt.Println(myMap1, myMap2)
+	fmt.Println(myMap1)
 
 	fmt.Println("Before Programm End")
 
