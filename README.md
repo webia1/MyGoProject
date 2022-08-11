@@ -49,6 +49,7 @@ Own Notices
     - [With `make`](#with-make)
     - [`ok` &rarr; Comma `ok` idiom](#ok-rarr-comma-ok-idiom)
     - [Deleting](#deleting)
+    - [Maps as Sets](#maps-as-sets)
 
 <!-- /code_chunk_output -->
 
