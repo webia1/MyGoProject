@@ -50,6 +50,17 @@ Own Notices
     - [`ok` &rarr; Comma `ok` idiom](#ok-rarr-comma-ok-idiom)
     - [Deleting](#deleting)
     - [Maps as Sets](#maps-as-sets)
+  - [Structs](#structs)
+    - [Anonymous Structs](#anonymous-structs)
+    - [Comparing and Converting](#comparing-and-converting)
+- [Scopes and Control Structures](#scopes-and-control-structures)
+  - [Shadowing and detecting shadowing variables](#shadowing-and-detecting-shadowing-variables)
+  - [If](#if)
+  - [for - 4 different formats](#for-4-different-formats)
+    - [C Style](#c-style)
+    - [Condition only (like while in JS/TS)](#condition-only-like-while-in-jsts)
+    - [Infinit loop with break](#infinit-loop-with-break)
+    - [for range](#for-range)
 
 <!-- /code_chunk_output -->
 
@@ -1334,20 +1345,353 @@ fmt.Println(myMap1, value, ok)
 
 #### Deleting
 
+Delete function does not return a value!!
+
 ```go
-	myMap1 := map[string]int{
-		"foo": 7,
-		"bar": 11,
-		"baz": 2014,
-	}
+myMap1 := map[string]int{
+  "foo": 7,
+  "bar": 11,
+  "baz": 2014,
+}
 
-	delete(myMap1, "baz")
+delete(myMap1, "baz")
 
-	fmt.Println(myMap1) // map[bar:11 foo:7]
+fmt.Println(myMap1) // map[bar:11 foo:7]
 ```
 
 #### Maps as Sets
 
+You can use maps as sets because maps because you cannot have duplicate keys in
+a map.
+
 ```go
-//
+myMap1 := map[int]bool{}
+myValues := []int{7, 1, 2, 3, 3, 2, 2, 2, 7}
+
+for _, v := range myValues {
+  myMap1[v] = true
+}
+
+fmt.Println(myMap1, myMap1[11])
+// map[1:true 2:true 3:true 7:true]
+// false
+```
+
+##### Using `structs` as values within a `set`
+
+- `ok` is a local variable
+- `_` is a convention means ignore first return value (value)
+
+see Comma `ok` idiom above
+
+```go
+// weird constellation for JS/TS-Devs :)
+intSet := map[int]struct{}{}
+vals := []int{1, 2, 2, 2, 3}
+for _, v := range vals {
+	intSet[v] = struct{}{}
+}
+
+if _, ok := intSet[3]; ok {
+	fmt.Println("3 is in the set")
+}
+
+fmt.Println("Before Programm End")
+```
+
+### Structs
+
+- Syntax like interfaces in JS/TS.
+- If they are defined wihtin a function, they can only be used in that function.
+- `.` Dot Notation
+
+```go
+type person struct {
+	name string
+	age  int
+}
+
+p1 := person{}
+p1.name = "Michael"
+p1.age = 55
+
+p2 := person{
+	name: "George",
+	age:  56,
+}
+
+// if so all of them required
+p3 := person{"Rita", 66}
+
+// if so, age will be set to its zero value
+p4 := person{
+	name: "Aretha",
+}
+
+fmt.Println(p1, p2, p3, p4)
+// {Michael 55} {George 56} {Rita 66} {Aretha 0}
+```
+
+#### Anonymous Structs
+
+```go
+person := struct {
+	name string
+	age  int
+}{
+	name: "George Michael",
+	age:  56,
+}
+
+fmt.Println(person)
+{George Michael 56}
+```
+
+#### Comparing and Converting
+
+Comparing
+
+- possible if
+  - composed of comparable types
+- not possible if
+  - slice/map fields
+  - different types/order/props
+
+Anonymous Structs can be compared
+
+- if same props/order/types
+
+Type conversion is possible only
+
+- if same props/order/types
+
+## Scopes and Control Structures
+
+### Shadowing and detecting shadowing variables
+
+- Shadowing is similar to in JS/TS
+
+Detecting:
+
+```shell
+go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest
+```
+
+If you use a `Makefile`:
+
+```makefile
+vet:
+  go vet ./...
+  shadow ./...
+.PHONY:vet
+```
+
+Go hat a so called `universe block` with so called `predeclared identifiers`.
+Dedection within is `universe block` is difficult and not covered by most
+linters incl. the one above.
+
+### If
+
+If can have its block variables like:
+
+```go
+
+// rand must be configured -> rand.Seed
+
+rand.Seed(time.Now().UnixNano())
+
+if n := rand.Intn(10); n == 0 {
+  fmt.Println("It is zero", n)
+} else {
+  fmt.Println("Not zero", n)
+}
+
+```
+
+### for - 4 different formats
+
+- `for` is only looping key word in Go.
+- `break` or `continue` (=skip) are allowed
+- labeling possible
+  - with `labelName:`
+  - in a seperate line above `for`
+  - then within a `for` e.g. `continue labelName`
+
+#### C Style
+
+You must use `:=` because `var` is not allowed here
+
+```go
+for i :=0; i < 10; i++ {
+  // ...
+}
+```
+
+#### Condition only (like while in JS/TS)
+
+```go
+i := 0
+for i < 100 {
+  // ...
+}
+```
+
+#### Infinit loop with break
+
+```go
+for {
+  // ....
+  if whatEver {
+    break
+  }
+}
+```
+
+#### for range
+
+##### In General
+
+Idiomatic:
+
+- `i,v` index/value (arr/slice/string) or
+- `k,v` key/value (maps/..)
+- for-range value is a copy
+
+```go
+somePrimNumbers := []int{2, 3, 5, 7, 9}
+for index, value := range somePrimNumbers {
+  fmt.Println(index, value)
+}
+```
+
+##### Ignoring Index
+
+```go
+somePrimNumbers := []int{2, 3, 5, 7, 9}
+for _, v := range somePrimNumbers {
+  fmt.Println(v)
+}
+```
+
+##### Range in a set (key only example)
+
+```go
+	someMapAsSet := map[string]bool{
+  "George":   true,
+  "Michael":  true,
+  "Aretha":   true,
+}
+
+for k := range someMapAsSet {
+  fmt.Println(k)
+}
+```
+
+##### Iterating over maps
+
+Order is always different, but fmt.Println sorts keys in ascending order.
+
+```go
+m := map[string]int{
+  "one":   1,
+  "two":   2,
+  "three": 3,
+}
+
+for i := 0; i < 3; i++ {
+  fmt.Println("Iteration no", i+1)
+  for k, v := range m {
+    fmt.Println(k, v)
+  }
+}
+```
+
+##### Iterating over Strings
+
+```go
+str := "Hi There"
+
+for i, v := range str {
+  fmt.Println(i, string(v))
+}
+
+// 0 H
+// 1 i
+// 2
+// 3 T
+// 4 h
+// 5 e
+// 6 r
+// 7 e
+
+```
+
+##### Iterating over String Slices
+
+```go
+str := []string{"Hi", "there"}
+
+for i, v := range str {
+  fmt.Println(i, v)
+}
+
+// 0 Hi
+// 1 there
+```
+
+##### Using for-range like a arr.forEach in JS/TS
+
+```go
+
+initialValues := []int{1, 2, 3}
+doubles := []int{}
+
+for _, v := range initialValues {
+	doubles = append(doubles, v*2)
+}
+
+fmt.Println(initialValues) // [1 2 3]
+fmt.Println(doubles) // [2 4 6]
+
+```
+
+##### Nested for-range loops with labels
+
+No skipped values:
+
+```go
+	initialValues := [][]int{{1, 2, 3}, {2, 4, 6}}
+
+myLabelLevel0:
+	for i, level0Val := range initialValues {
+		for _, level1Val := range level0Val {
+			if level1Val == 11 {
+				continue myLabelLevel0
+			}
+		}
+		fmt.Println("Iteration", i+1, "Level 1: No values skipped")
+	}
+
+// Iteration 1 Level 1: No values skipped
+// Iteration 2 Level 1: No values skipped
+```
+
+Skipped Values:
+
+```go
+	initialValues := [][]int{{1, 2, 3}, {2, 4, 6}}
+
+myLabelLevel0:
+	for i, level0Val := range initialValues {
+		for _, level1Val := range level0Val {
+			if level1Val == 3 {
+				fmt.Println("Iteration", i+1, "Level 1: Skipped value", level1Val)
+				continue myLabelLevel0
+			}
+		}
+		fmt.Println("Iteration", i+1, "Level 1: No values skipped")
+	}
+
+// Iteration 1 Level 1: Skipped value 3
+// Iteration 2 Level 1: No values skipped
 ```
