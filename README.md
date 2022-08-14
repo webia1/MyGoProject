@@ -61,6 +61,12 @@ Own Notices
     - [Condition only (like while in JS/TS)](#condition-only-like-while-in-jsts)
     - [Infinit loop with break](#infinit-loop-with-break)
     - [for range](#for-range)
+  - [Switch](#switch)
+  - [`goto`](#goto)
+- [Functions](#functions)
+  - [Simple Example](#simple-example)
+  - [Simulating named and optional params](#simulating-named-and-optional-params)
+  - [Variadinc Input Params and Slices](#variadinc-input-params-and-slices)
 
 <!-- /code_chunk_output -->
 
@@ -1694,4 +1700,130 @@ myLabelLevel0:
 
 // Iteration 1 Level 1: Skipped value 3
 // Iteration 2 Level 1: No values skipped
+```
+
+### Switch
+
+You don't have to write break, but you can, is the same. If you want to break
+out of the whole switch statement you have to use a label.
+
+The so called **blank switches** are possible:
+
+- `switch { ... }` Check any predefined variable within switch or
+- write it so: `switch a { ... }` and check for a
+
+```go
+  myNumbers := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}
+myForLoop:
+	for _, myNumber := range myNumbers {
+		switch myNumber {
+		case 1, 2, 3:
+			fmt.Println(myNumber, "within 1 - 3")
+		case 4:
+			fmt.Println(myNumber, "must be four")
+		case 5, 6:
+			// these numbers will be skipped
+		case 10:
+			fmt.Println("till we get 10 and break")
+			break myForLoop
+		default:
+			fmt.Println(myNumber, "after 6")
+		}
+	}
+
+	/**
+	1 within 1 - 3
+	2 within 1 - 3
+	3 within 1 - 3
+	4 must be four
+	7 after 6
+	8 after 6
+	9 after 6
+	till we get 10 and break
+	*/
+```
+
+One more example: Combining it with random numbers
+
+```go
+package main
+
+import (
+"fmt"
+"math/rand"
+_ "reflect"
+"time"
+)
+
+func main() {
+  rand.Seed(time.Now().UnixNano())
+  switch n := rand.Intn(10); {
+  case n == 0:
+    fmt.Println("Zero")
+  case n > 5:
+    fmt.Println("Greater five", n)
+  default:
+    fmt.Println("That's OK", n)
+  }
+}
+```
+
+### `goto`
+
+Please do not use it!
+
+## Functions
+
+### Simple Example
+
+Similar to JS/TS
+
+```go
+func main() {
+	x := simpleDivision(7, 10)
+	fmt.Println("x: ", x) // x:  0.7
+}
+
+func simpleDivision(a float32, b float32) float32 {
+	if b == 0 {
+		return 0
+	} else {
+		return a / b
+	}
+}
+```
+
+### Simulating named and optional params
+
+Use a `struct` for this purpose. At least one prop must be present, others can
+be absent.
+
+```go
+func main() {
+
+	s1 := Singer{
+		name: "Michael Jackson",
+		// age:  55,   // <-- would be OK
+	}
+
+	PrintSinger(s1) // {Michael Jackson 55}
+
+	fmt.Println("Before Programm End")
+
+}
+
+func PrintSinger(singer Singer) {
+	fmt.Println(singer)
+}
+
+type Singer struct {
+	name string
+	age  int
+}
+```
+
+### Variadinc Input Params and Slices
+
+```go
+//
 ```
