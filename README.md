@@ -1,6 +1,6 @@
 # GoLang
 
-Own Notices
+Own Notices from various sources.
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=4 orderedList=false} -->
 
@@ -72,6 +72,18 @@ Own Notices
   - [Anonymous Functions & IIFEs (like in JS/TS)](#anonymous-functions-iifes-like-in-jsts)
   - [Closures (similar to JS/TS)](#closures-similar-to-jsts)
   - [Functions as Params](#functions-as-params)
+  - [Returning Functions from Functions](#returning-functions-from-functions)
+  - [defer](#defer)
+- [Pointers](#pointers)
+  - [Pointer Type](#pointer-type)
+  - [Always check for `nil`](#always-check-for-nil)
+  - [`new` creates a zero value pointer](#new-creates-a-zero-value-pointer)
+  - [For structs use `&` before (weird)](#for-structs-use-before-weird)
+  - [With functions](#with-functions)
+  - [With JSON](#with-json)
+  - [Slices as Buffers](#slices-as-buffers)
+- [Types](#types)
+  - [Basics](#basics-1)
 
 <!-- /code_chunk_output -->
 
@@ -2020,5 +2032,212 @@ Using slice.Sort btw:
 	})
 	fmt.Println("People: ", people)
   // People:  [{Michael Jackson 55} {George Michael 56}]
+
+```
+
+### Returning Functions from Functions
+
+Similar to JS/TS
+
+> TODO: Check whether the functions wihin functions have to be anonymous.
+> Because `getFullnames` gives an error within main()
+
+```go
+func main() {
+
+	singers := []Person{
+		{"Michael Jackson"},
+		{"George Michael"},
+	}
+
+	artists := []Person{
+		{"Jack Sparrow"},
+		{"Mickey Mouse"},
+	}
+
+	s := getFullnames(singers)
+	a := getFullnames(artists)
+
+	fmt.Println(s(0), " - ", s(1))
+	fmt.Println(a(0), " - ", a(1))
+
+	fmt.Println("Before Programm End")
+}
+
+func getFullnames(from []Person) func(int) string {
+	return func(no int) string {
+		return from[no].Fullname
+	}
+}
+
+// outputs:
+// Michael Jackson  -  George Michael
+// Jack Sparrow  -  Mickey Mouse
+
+```
+
+### defer
+
+> TODO: Take your time because very different
+
+## Pointers
+
+Similar to C++, with heavy limitations
+
+```go
+var s = "Hi"
+var ps = &s
+fmt.Println(s, ps)  // Hi 0xc000010250
+*ps = "Hello"
+fmt.Println(s, ps)  // Hello 0xc000010250
+```
+
+### Pointer Type
+
+```go
+	var x = 3
+	var pointerToX *int  // <- Pointer Type
+	fmt.Println(x) // 3
+
+	pointerToX = &x
+	fmt.Println(pointerToX) // 0xc0000ba008
+```
+
+### Always check for `nil`
+
+```go
+var i *int
+fmt.Println(i)          // <nil>
+fmt.Println(i == nil)   // true
+fmt.Println(*i)  // Exception has occurred: panic
+// "runtime error: invalid memory address
+// or nil pointer dereference"
+
+```
+
+### `new` creates a zero value pointer
+
+```go
+	var i = new(int)
+	fmt.Println(i) // 0xc0000ba008
+	fmt.Println(i == nil) // false
+	fmt.Println(*i) // 0
+```
+
+### For structs use `&` before (weird)
+
+> not applicaple to primitive literals, like numbers, booleans and strings
+
+```go
+	type Foo struct{}
+	var f = &Foo{}          // Type &Foo, value {}
+	fmt.Println(f == nil)   // false
+	fmt.Println(f, *f)      // &{} {}
+```
+
+### With functions
+
+Type of `&`Value is `*`Type, see the following function `getStringPointer`
+below.
+
+```go
+package main
+import "fmt"
+
+func main() {
+	s := "Hi"
+	fmt.Println(getStringPointer(s)) // 0xc000010250
+}
+
+func getStringPointer(s string) *string {
+	return &s
+}
+```
+
+Another Example:
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var someString string
+	updateS(&someString, "Hi")
+	fmt.Println(someString)
+
+	fmt.Println("Before Programm End")
+}
+
+func updateS(s *string, value string) {
+	*s = value
+}
+```
+
+### With JSON
+
+When a function expects an interface: You can use pointer parameters to modify a
+variable (only then).
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+func main() {
+
+	type person struct {
+		Fullname string `json: "fullname"`
+		Age      int    `json: "age"`
+	}
+
+	p := person{}
+
+	err := json.Unmarshal([]byte(`{"fullname": "Michael Jackson", "age": 55}`), &p)
+
+	fmt.Println(err) // <nil>
+	fmt.Println(p)   // {Michael Jackson 55}
+
+	fmt.Println("Before Programm End")
+
+}
+```
+
+### Slices as Buffers
+
+> TODO: Add an example
+
+## Types
+
+### Basics
+
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func main() {
+
+	f := 3
+	g := "Hi"
+	h := 3.14
+
+	var i = map[string]int{
+		"a": 3,
+	}
+
+	fmt.Println(reflect.TypeOf(f)) // int
+	fmt.Println(reflect.TypeOf(g)) // string
+	fmt.Println(reflect.TypeOf(h)) // float64
+	fmt.Println(reflect.TypeOf(i)) // map[string]int
+}
 
 ```

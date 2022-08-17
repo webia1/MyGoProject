@@ -1,31 +1,24 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"sort"
 )
 
 func main() {
 
-	type Person struct {
-		Fullname string
-		Age      int
+	type person struct {
+		Fullname string `json: "fullname"`
+		Age      int    `json: "age"`
 	}
 
-	people := []Person{
-		{"Michael Jackson", 55},
-		{"George Michael", 56},
-	}
+	p := person{}
 
-	sort.Slice(people, func(i int, j int) bool {
-		return people[i].Fullname < people[j].Fullname
-	})
-	fmt.Println("People: ", people)
+	err := json.Unmarshal([]byte(`{"fullname": "Michael Jackson", "age": 55}`), &p)
 
-	sort.Slice(people, func(i int, j int) bool {
-		return people[i].Age < people[j].Age
-	})
-	fmt.Println("People: ", people)
+	fmt.Println(err) // <nil>
+	fmt.Println(p)   // {Michael Jackson 55}
 
 	fmt.Println("Before Programm End")
+
 }
