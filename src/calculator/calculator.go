@@ -5,7 +5,9 @@ func Sub(a float64, b float64) float64 { return a - b }
 func Mul(a float64, b float64) float64 { return a * b }
 func Div(a float64, b float64) float64 { return a / b }
 
-var OpMap = map[string]func(float64, float64) float64{
+type OpFuncType func(float64, float64) float64
+
+var OpMap = map[string]OpFuncType{
 	"+": Add,
 	"-": Sub,
 	"*": Mul,
