@@ -2,40 +2,30 @@ package main
 
 import (
 	"fmt"
-	"strconv"
-	"webia1/MyGoProject/src/calculator"
+	"sort"
 )
 
 func main() {
 
-	someExpressions := [][]string{
-		{"4", "+", "2"},
-		{"4", "-", "2"},
-		{"4", "*", "2"},
-		{"4", "/", "2"},
+	type Person struct {
+		Fullname string
+		Age      int
 	}
 
-	for _, se := range someExpressions {
-		a, err := strconv.ParseFloat(se[0], 64)
-		if err != nil {
-			continue
-		}
-
-		op := se[1]
-		opKind, ok := calculator.OpMap[op]
-		if !ok {
-			fmt.Println("Op not within OpMap")
-		}
-
-		b, err := strconv.ParseFloat(se[2], 64)
-		if err != nil {
-			continue
-		}
-
-		result := opKind(a, b)
-		fmt.Println("Result: ", result)
-
+	people := []Person{
+		{"Michael Jackson", 55},
+		{"George Michael", 56},
 	}
+
+	sort.Slice(people, func(i int, j int) bool {
+		return people[i].Fullname < people[j].Fullname
+	})
+	fmt.Println("People: ", people)
+
+	sort.Slice(people, func(i int, j int) bool {
+		return people[i].Age < people[j].Age
+	})
+	fmt.Println("People: ", people)
 
 	fmt.Println("Before Programm End")
 }

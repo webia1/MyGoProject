@@ -69,6 +69,9 @@ Own Notices
   - [Variadic Input Params and Slices](#variadic-input-params-and-slices)
   - [Multiple Return Values](#multiple-return-values)
   - [Function as Values](#function-as-values)
+  - [Anonymous Functions & IIFEs (like in JS/TS)](#anonymous-functions-iifes-like-in-jsts)
+  - [Closures (similar to JS/TS)](#closures-similar-to-jsts)
+  - [Functions as Params](#functions-as-params)
 
 <!-- /code_chunk_output -->
 
@@ -1970,4 +1973,52 @@ func main() {
 
 	fmt.Println("Before Programm End")
 }
+```
+
+### Anonymous Functions & IIFEs (like in JS/TS)
+
+Similar to JS:
+
+```go
+	for i := 0; i <= 3; i++ {
+		func(no int) {
+			fmt.Println("No: ", no)
+		}(i)
+	}
+```
+
+### Closures (similar to JS/TS)
+
+```go
+// TODO: Example?
+```
+
+### Functions as Params
+
+Using slice.Sort btw:
+
+```go
+	type Person struct {
+		Fullname string
+		Age      int
+	}
+
+	people := []Person{
+		{"Michael Jackson", 55},
+		{"George Michael", 56},
+	}
+
+	sort.Slice(people, func(i int, j int) bool {
+		return people[i].Fullname < people[j].Fullname
+	})
+	fmt.Println("People: ", people)
+  // People:  [{George Michael 56} {Michael Jackson 55}]
+
+
+	sort.Slice(people, func(i int, j int) bool {
+		return people[i].Age < people[j].Age
+	})
+	fmt.Println("People: ", people)
+  // People:  [{Michael Jackson 55} {George Michael 56}]
+
 ```
