@@ -66,7 +66,9 @@ Own Notices
 - [Functions](#functions)
   - [Simple Example](#simple-example)
   - [Simulating named and optional params](#simulating-named-and-optional-params)
-  - [Variadinc Input Params and Slices](#variadinc-input-params-and-slices)
+  - [Variadic Input Params and Slices](#variadic-input-params-and-slices)
+  - [Multiple Return Values](#multiple-return-values)
+  - [Function as Values](#function-as-values)
 
 <!-- /code_chunk_output -->
 
@@ -1774,6 +1776,8 @@ Please do not use it!
 
 ## Functions
 
+Blank returns possible: `return` without further info. Better avoid them.
+
 ### Simple Example
 
 Similar to JS/TS
@@ -1822,8 +1826,148 @@ type Singer struct {
 }
 ```
 
-### Variadinc Input Params and Slices
+### Variadic Input Params and Slices
+
+Like spread operator `...` in JS/TS, but:
+
+- if as param -> the only or the las param
+- Differences
+  - `func addToInitial(initial int, numbers ...int)` &larr; between
+  - `addToInitial(2, []int{2, 4, 6}...)` &larr; after
 
 ```go
-//
+func main() {
+
+	fmt.Println(addToInitial(1))          // []
+	fmt.Println(addToInitial(2, 3))       // [5]
+	fmt.Println(addToInitial(1, 2, 3, 4)) // [3 4 5]
+	a := []int{2, 3}
+	fmt.Println(addToInitial(2, a...))              // [4 5]
+	fmt.Println(addToInitial(2, []int{2, 4, 6}...)) // [4 6 8]
+
+	fmt.Println("Before Programm End")
+
+}
+
+func addToInitial(initial int, numbers ...int) []int {
+	out := make([]int, 0, len(numbers))
+	for _, v := range numbers {
+		out = append(out, initial+v)
+	}
+	return out
+}
+```
+
+### Multiple Return Values
+
+Named or not named, see below:
+
+```go
+func main() {
+
+	result, remainder, err := divRemNamed(7, 3)
+	// or result, remainder, err := divRemNamed(7, 3)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(result, remainder)  // 2 1
+
+	fmt.Println("Before Programm End")
+
+}
+
+func divRem(numerator int, denominator int) (int, int, error) {
+	if denominator == 0 {
+		return 0, 0,
+			errors.New("Division by 0")
+	}
+	return numerator / denominator, numerator % denominator, nil
+}
+
+func divRemNamed(numerator int, denominator int) (result int, reminder int, err error) {
+	if denominator == 0 {
+		return 0, 0,
+			errors.New("Division by 0")
+	}
+	return numerator / denominator, numerator % denominator, nil
+}
+```
+
+### Function as Values
+
+> TODO: Compare it with JS
+
+As long has the several functions have the same signature, one can shape code
+like below. Notice the values of the Map "OpMap".
+
+First the output, it is as expected:
+
+```shell
+Result:  6
+Result:  2
+Result:  8
+Result:  2
+Before Programm End
+```
+
+```go
+package calculator
+
+func Add(a float64, b float64) float64 { return a + b }
+func Sub(a float64, b float64) float64 { return a - b }
+func Mul(a float64, b float64) float64 { return a * b }
+func Div(a float64, b float64) float64 { return a / b }
+
+var OpMap = map[string]func(float64, float64) float64{
+	"+": Add,
+	"-": Sub,
+	"*": Mul,
+	"/": Div,
+}
+
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"webia1/MyGoProject/src/calculator"
+)
+
+func main() {
+
+	someExpressions := [][]string{
+		{"4", "+", "2"},
+		{"4", "-", "2"},
+		{"4", "*", "2"},
+		{"4", "/", "2"},
+	}
+
+	for _, se := range someExpressions {
+		a, err := strconv.ParseFloat(se[0], 64)
+		if err != nil {
+			continue
+		}
+
+		op := se[1]
+		opKind, ok := calculator.OpMap[op]
+    // opKind = webia1/MyGoProject/src/calculator.Add
+		if !ok {
+			fmt.Println("Op not within OpMap")
+		}
+
+		b, err := strconv.ParseFloat(se[2], 64)
+		if err != nil {
+			continue
+		}
+
+		result := opKind(a, b)
+		fmt.Println("Result: ", result)
+
+	}
+
+	fmt.Println("Before Programm End")
+}
+
+
 ```
