@@ -84,6 +84,8 @@ Own Notices from various sources.
   - [Slices as Buffers](#slices-as-buffers)
 - [Types](#types)
   - [Basics](#basics-1)
+  - [Methods (Difference to functions)](#methods-difference-to-functions)
+  - [Pointer Receivers and Value Receivers](#pointer-receivers-and-value-receivers)
 
 <!-- /code_chunk_output -->
 
@@ -2214,6 +2216,10 @@ func main() {
 
 ## Types
 
+Either Abstract and Concrete in Go:
+
+Abstract Type: Specifies what do do, but not how to do Concrete Type: What & how
+
 ### Basics
 
 ```go
@@ -2241,3 +2247,102 @@ func main() {
 }
 
 ```
+
+### Methods (Difference to functions)
+
+Notice the so called `receiver` specification, it appears between the
+`function name => method name in this case` and function keyword `func`:
+
+```go
+package methodexample
+
+import "fmt"
+
+type Person struct {
+	Fullname string
+	Age      int
+}
+
+func (p Person) PersonLogger() string {
+	return fmt.Sprintf("%s age %d", p.Fullname, p.Age)
+}
+
+// ---------------------------
+
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"webia1/MyGoProject/src/methodexample"
+)
+
+func main() {
+
+	p := methodexample.Person{}
+
+	err := json.Unmarshal([]byte(`{"fullname": "Michael Jackson", "age": 55}`), &p)
+
+	if err == nil {
+		output := methodexample.Person.PersonLogger(p)
+		fmt.Println(output)
+	}
+}
+
+
+```
+
+### Pointer Receivers and Value Receivers
+
+Rule:
+
+- Method modifies the receiver and needs to handle `nil` instances => it must
+  use a pointer receiver
+- If not, you can use a value receiver
+
+```go
+package counterexample
+
+import (
+	"fmt"
+	"time"
+)
+
+type Counter struct {
+	no      int
+	updated time.Time
+}
+
+func (c *Counter) Inc() {
+	c.no++
+	c.updated = time.Now()
+}
+
+func (c Counter) Log() string {
+	return fmt.Sprintf("No: %d, updated: %v", c.no, c.updated)
+}
+
+//---------------------
+
+package main
+
+import (
+	"fmt"
+	"webia1/MyGoProject/src/counterexample"
+)
+
+func main() {
+
+	var c counterexample.Counter
+	fmt.Println(c.Log())
+	c.Inc()
+	fmt.Println(c.Log())
+}
+
+// Outputs:
+// No: 0, updated: 0001-01-01 00:00:00 +0000 UTC
+// No: 1, updated: 2022-08-18 09:46:34.473224 +0200 CEST m=+0.000195143
+
+```
+
+### `nil` instances

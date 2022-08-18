@@ -1,23 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"webia1/MyGoProject/src/counterexample"
 )
 
 func main() {
 
-	type person struct {
-		Fullname string `json: "fullname"`
-		Age      int    `json: "age"`
-	}
-
-	p := person{}
-
-	err := json.Unmarshal([]byte(`{"fullname": "Michael Jackson", "age": 55}`), &p)
-
-	fmt.Println(err) // <nil>
-	fmt.Println(p)   // {Michael Jackson 55}
+	var c counterexample.Counter
+	fmt.Println(c.Log())
+	c.Inc()
+	fmt.Println(c.Log())
 
 	fmt.Println("Before Programm End")
 
