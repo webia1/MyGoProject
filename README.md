@@ -86,6 +86,7 @@ Own Notices from various sources.
   - [Basics](#basics-1)
   - [Methods (Difference to functions)](#methods-difference-to-functions)
   - [Pointer Receivers and Value Receivers](#pointer-receivers-and-value-receivers)
+  - [`nil` instances](#nil-instances)
 
 <!-- /code_chunk_output -->
 
@@ -2346,3 +2347,65 @@ func main() {
 ```
 
 ### `nil` instances
+
+A method with a value receiver can’t check for nil, it panics if invoked with a
+nil receiver. Therefore you need pointer receivers, even it they not modify the
+struct (=> simulated class).
+
+```go
+package treeexample
+
+type IntTree struct {
+	val         int
+	left, right *IntTree
+}
+
+func (it *IntTree) Insert(val int) *IntTree {
+	if it == nil {
+		return &IntTree{val: val}
+	}
+	if val < it.val {
+		it.left = it.left.Insert(val)
+	} else if val > it.val {
+		it.right = it.right.Insert(val)
+	}
+	return it
+}
+
+func (it *IntTree) Has(val int) bool {
+	switch {
+	case it == nil:
+		return false
+	case val < it.val:
+		return it.left.Has(val)
+	case val > it.val:
+		return it.right.Has(val)
+	default:
+		return true
+	}
+}
+
+//--------------------------
+
+package main
+
+import (
+	"fmt"
+	"webia1/MyGoProject/src/treeexample"
+)
+
+func main() {
+
+	var it *treeexample.IntTree
+
+	var vals = []int{2, 1, 3, 3, 3, 4, 2, 7, 1, 5, 3}
+
+	for _, v := range vals {
+		it = it.Insert(v)
+	}
+
+  fmt.Println(it.Has(7)) // true
+
+}
+
+```

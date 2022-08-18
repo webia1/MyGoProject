@@ -1,5 +1,18 @@
 # Online Ressources
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=2 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Documentation](#documentation)
+- [Playground](#playground)
+- [Books](#books)
+- [Interesting Projects & Libs](#interesting-projects-libs)
+- [Other Blogs](#other-blogs)
+- [Online Videos](#online-videos)
+
+<!-- /code_chunk_output -->
+
 ## Documentation
 
 - [Go Official Documentation](https://go.dev/doc/)
@@ -12,6 +25,10 @@
 > Multiple Files -> separation -> `-- filename.go --`
 
 - Go Playground <https://go.dev/play/>
+
+## Books
+
+- <https://github.com/dariubs/GoBooks>
 
 ## Interesting Projects & Libs
 
