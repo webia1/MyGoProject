@@ -2,21 +2,35 @@ package main
 
 import (
 	"fmt"
-	"webia1/MyGoProject/src/treeexample"
 )
 
 func main() {
 
-	var it *treeexample.IntTree
-
-	var vals = []int{2, 1, 3, 3, 3, 4, 2, 7, 1, 5, 3}
-
-	for _, v := range vals {
-		it = it.Insert(v)
+	var s Singer = Singers{
+		Name: "Michael Jackson",
 	}
 
-	fmt.Println(it.Has(7))
+	fmt.Println(s)
+	s.Sing()
+	s.Talk()
 
 	fmt.Println("Before Programm End")
 
+}
+
+type Singer interface {
+	Talk()
+	Sing()
+}
+
+type Singers struct {
+	Name string
+}
+
+func (s Singers) Talk() {
+	fmt.Println("Talking")
+}
+
+func (s Singers) Sing() {
+	fmt.Println("Singing")
 }

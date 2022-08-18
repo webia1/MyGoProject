@@ -1,6 +1,6 @@
 # Negative Sides of Go
 
-- No Generics
+- Generics from v.1.18
 - No Function Overloading
 - Not for numerical computing
 - `:=` Re-Assigning can cause `Shadowing Variables`

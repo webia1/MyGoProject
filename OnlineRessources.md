@@ -1,6 +1,6 @@
 # Online Ressources
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=2 orderedList=false} -->
+<!-- @import "[TOC]" {cmd="toc" depthFrom=2 depthTo=3 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
@@ -16,6 +16,7 @@
 ## Documentation
 
 - [Go Official Documentation](https://go.dev/doc/)
+- [Go By Example](https://gobyexample.com/) &larr; &larr;
 - [Effective Go - Book](https://go.dev/doc/effective_go)
 - [Go und Versioning](https://research.swtch.com/vgo)
 - [What is Software Engineering with Go?](https://research.swtch.com/vgo-eng)

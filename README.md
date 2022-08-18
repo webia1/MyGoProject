@@ -87,6 +87,14 @@ Own Notices from various sources.
   - [Methods (Difference to functions)](#methods-difference-to-functions)
   - [Pointer Receivers and Value Receivers](#pointer-receivers-and-value-receivers)
   - [`nil` instances](#nil-instances)
+  - [Method vs. Function & Method Expressions](#method-vs-function-method-expressions)
+  - [Typing/SubTyping & Conversions](#typingsubtyping-conversions)
+  - [ioa](#ioa)
+  - [Composition](#composition)
+  - [Interfaces](#interfaces)
+    - [Standard Interfaces](#standard-interfaces)
+    - [Embedding Interfaces](#embedding-interfaces)
+  - [Generics](#generics)
 
 <!-- /code_chunk_output -->
 
@@ -2409,3 +2417,240 @@ func main() {
 }
 
 ```
+
+### Method vs. Function & Method Expressions
+
+All the following are possible:
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+
+	myAdder1 := SimpleAdder{
+		initalValue: 1,
+	}
+	myF1 := myAdder1.AddTo
+	myF2 := SimpleAdder.AddTo // <- METHOD EXPRESSION
+
+	fmt.Println(myAdder1.AddTo(2)) // 3
+	fmt.Println(myF1(2))           // 3
+	fmt.Println(myF2(myAdder1, 2)) // 3
+
+}
+
+type SimpleAdder struct {
+	initalValue int
+}
+
+func (s SimpleAdder) AddTo(val int) int {
+	return s.initalValue + val
+}
+```
+
+### Typing/SubTyping & Conversions
+
+Subtyping is not the same as inheritance. However, because most programming
+languages use inheritance to implement subtyping, the definitions are frequently
+confused in common usage.
+
+Even the types seem to be compatible in the example below they have to be
+converted:
+
+```go
+	type Points int
+	type HighPoints int
+
+	var i int = 10
+	var p Points = 20
+	var h HighPoints = 30
+
+	h = p // Compilation Error
+	p = i // Compilation Error
+
+	p = Points(h)					// OK
+	p = Points(i)					// OK
+	h = HighPoints(p)			// OK
+	h = HighPoints(i)			// OK
+	i = int(p)						// OK
+	i = int(h)						// OK
+```
+
+### ioa
+
+Like unnamed Enums in TS:
+
+```go
+const (
+	a = iota
+	b
+	c
+)
+
+	const (
+	d = iota + 1
+	e
+	f
+)
+
+const (
+	i = iota + 1
+	_ // skip
+	j
+	k
+)
+
+	type Direction int
+
+	const (
+		North Direction = iota
+		East
+		South
+		West
+	)
+
+fmt.Println(a, b, c) //  0 1 2
+fmt.Println(d, e, f) //  1 2 3
+fmt.Println(i, j, k) //  1 3 4
+fmt.Println(North, East, South, West) // 0 1 2 3
+```
+
+### Composition
+
+Reason: Remember -> `fish` inherits `run()` and has to override it. `run()`
+better as interface => dog implements it but fish does not.
+
+Another example in Go with structs in this matter, called EMBEDDING. Embedding
+is not inheritance.
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+
+	var m = Human{
+		Creature: Creature{
+			Kind: "Mammal",
+		},
+		Fullname: "Michael Jackson",
+	}
+
+	m.setAge(55)
+	fmt.Println(m) // {{Mammal} Michael Jackson 55}
+
+	fmt.Println("Before Programm End")
+
+}
+
+type Creature struct {
+	Kind string
+}
+
+type Human struct {
+	Creature
+	Fullname string
+	Age      int
+}
+
+func (h *Human) setAge(age int) {
+	h.Age = age
+}
+```
+
+### Interfaces
+
+**Rule: Accept interfaces, return structs** (Due to decoupling principle)
+
+A go-interface is a collection of methods as well as it is a custom type. In Go,
+it is necessary to implement all the methods declared in the interface for
+implementing an interface
+
+- Idiomatic: `er` at the end Interfaces in Go.
+- interfaces provide type-safety & decoupling
+- They are `implicit interfaces`; they specify, what callers need.
+-
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+
+	var s Singer = Singers{
+		Name: "Michael Jackson",
+	}
+
+	fmt.Println(s)
+	s.Sing()
+	s.Talk()
+
+	fmt.Println("Before Programm End")
+
+}
+
+type Singer interface {
+	Talk()
+	Sing()
+}
+
+type Singers struct {
+	Name string
+}
+
+func (s Singers) Talk() {
+	fmt.Println("Talking")
+}
+
+func (s Singers) Sing() {
+	fmt.Println("Singing")
+}
+
+```
+
+#### Standard Interfaces
+
+If there is an Interface in Standardlibrary, what you could use, use it.
+
+`io.Reader` or `io.Writer` makes the life easier, e.g. whether you write to a
+file or a value in memory.
+
+Standard interfaces -> Decorator Pattern
+
+#### Embedding Interfaces
+
+Embedding Interfaces is also possible, like:
+
+```go
+
+type Fooer interface {
+	foo()
+}
+
+type Barer interface {
+	bar()
+}
+
+type FooBarer interface {
+	Fooer
+	Barer
+}
+
+```
+
+### Generics
+
+Starting with version 1.18, Go has added support for generics, also known as
+type parameters.
+
+<https://gobyexample.com/generics>
