@@ -101,6 +101,17 @@ Own Notices from various sources.
   - [Function Types (!important)](#function-types-important)
   - [Implicit Interfaces vs Dependency Injection](#implicit-interfaces-vs-dependency-injection)
   - [Generics](#generics)
+- [Errors](#errors)
+  - [Basics](#basics-2)
+    - [Runtime Error](#runtime-error)
+    - [Catching Runtime Error](#catching-runtime-error)
+    - [Formatting with `fmt.Errorf`](#formatting-with-fmterrorf)
+  - [Sentinel Errors](#sentinel-errors)
+  - [Using Constants for Sentinel Errors => Don't do it](#using-constants-for-sentinel-errors-dont-do-it)
+  - [Errors are values](#errors-are-values)
+  - [Custom Errors](#custom-errors)
+  - [Simulating Exception Handling using `panic`](#simulating-exception-handling-using-panic)
+  - [Wrapping Errors (Example: non existing file)](#wrapping-errors-example-non-existing-file)
 
 <!-- /code_chunk_output -->
 
@@ -3000,3 +3011,218 @@ Starting with version 1.18, Go has added support for generics, also known as
 type parameters.
 
 <https://gobyexample.com/generics>
+
+## Errors
+
+`error` is a built-in interface:
+
+```go
+type error interface {
+	Error() string
+}
+```
+
+`nil` is the zero value for any interface type.
+
+### Basics
+
+#### Runtime Error
+
+That will give you: `runtime error: integer divide by zero`
+
+```go
+
+func simpleDiv(a int, b int) (int, error) {
+	return a / b, nil
+}
+
+func main() {
+
+	result, err := simpleDiv(1, 0)
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(result)
+	}
+}
+```
+
+#### Catching Runtime Error
+
+But if you write the code like below, you will be able to catch the error:
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+func simpleDiv(a int, b int) (int, error) {
+	if b == 0 {
+		return 0, errors.New("division by zero")
+	}
+	return a / b, nil
+}
+
+func main() {
+
+	result, err := simpleDiv(1, 0)
+
+	if err != nil {
+		fmt.Println(result, err) // 0 division by zero
+	} else {
+		fmt.Println(result, err) // result <nil>
+	}
+
+}
+```
+
+#### Formatting with `fmt.Errorf`
+
+```go
+func simpleDiv(a int, b int) (int, error) {
+	if b == 0 {
+		return 0, fmt.Errorf("division by %d", b)
+	}
+	return a / b, nil
+}
+
+func main() {
+
+	result, err := simpleDiv(1, 0)
+
+	if err != nil {
+		fmt.Println(result, err) // 0 division by 0
+	} else {
+		fmt.Println(result, err)
+	}
+}
+```
+
+### Sentinel Errors
+
+sentinel: Wache, Wachposten, Markierung, Hinweiszeichen, Schildwache
+
+See more online:
+<https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully>
+
+Sentinel errors are one of the few variables declared at pacakage level. Their
+names start with `Err` (Exception `io.EOF`). They should be threated as
+read-only. (Go compiler cannot enforce this).
+
+Sentinel errors are usually used to indicate that you cannot start or proceed.
+
+Before you define a sentinel error, make sure you need one. **Once defined, it
+becomes part of your public API, and you have committed to making it available
+in all future backward-compatible releases.**
+
+It's far better to reuse one of the standard library's existing ones or define
+an error type that includes information about the condition that caused the
+error to be returned.
+
+**However, if you have an error condition that indicates a specific state in
+your application has been reached where no further processing is possible and no
+contextual information is required to explain the error state, a sentinel error
+is the correct choice.**
+
+### Using Constants for Sentinel Errors => Don't do it
+
+<https://dave.cheney.net/2016/04/07/constant-errors>
+
+### Errors are values
+
+<https://go.dev/play/p/DogOvKKwQkb>
+
+### Custom Errors
+
+See in the example below `GenerateError` function and `var gennErr error`.
+
+Wenn using custom errors, never define a variable to be of the type of your
+custom error. Either explicitly return nil wenn no error occurs or define the
+variable to be of type `error`.
+
+### Simulating Exception Handling using `panic`
+
+Check the part:
+
+```go
+	defer func() {
+		if recover() != nil {
+			fmt.Println("is neither")
+		}
+	}()
+```
+
+in the whole example below:
+
+```go
+package main
+
+import "fmt"
+
+// Positive returns true if the number is positive, false if it is negative.
+func Positive(n int) bool {
+	if n == 0 {
+		panic("undefined")
+	}
+	return n > -1
+}
+
+func Check(n int) {
+	defer func() {
+		if recover() != nil {
+			fmt.Println("is neither")
+		}
+	}()
+	if Positive(n) {
+		fmt.Println(n, "is positive")
+	} else {
+		fmt.Println(n, "is negative")
+	}
+}
+
+func main() {
+	Check(1)
+	Check(0)
+	Check(-1)
+}
+```
+
+### Wrapping Errors (Example: non existing file)
+
+`fmt.Errorf` has a special verb `%w`:
+
+<https://go.dev/play/p/N4PNzQCbKXN>
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"os"
+)
+
+func fileChecker(name string) error {
+	f, err := os.Open(name)
+	if err != nil {
+		return fmt.Errorf("in fileChecker: %w", err)
+	}
+	f.Close()
+	return nil
+}
+
+func main() {
+	err := fileChecker("not_here.txt")
+	if err != nil {
+		fmt.Println(err)
+		if wrappedErr := errors.Unwrap(err); wrappedErr != nil {
+			fmt.Println(wrappedErr)
+		}
+	}
+	fmt.Println("Before Program End")
+}
+```

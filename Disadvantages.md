@@ -11,7 +11,11 @@
     - they are a kind of compile time calculations
 - You cannot debug, if it does not build/run
 - Unvisible, unintuitiv rules
+
   - Initial letter uppercase -> Public function
     - like export in JS/TS
   - `er` at the end of the word for interfaces ??
   - filename musst be package name, all lowercase
+
+- Some ridiculous rules
+  - error strings should not be capitalized (ST1005)go-staticcheck
