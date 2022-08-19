@@ -89,11 +89,17 @@ Own Notices from various sources.
   - [`nil` instances](#nil-instances)
   - [Method vs. Function & Method Expressions](#method-vs-function-method-expressions)
   - [Typing/SubTyping & Conversions](#typingsubtyping-conversions)
-  - [ioa](#ioa)
+  - [iota](#iota)
   - [Composition](#composition)
   - [Interfaces](#interfaces)
     - [Standard Interfaces](#standard-interfaces)
     - [Embedding Interfaces](#embedding-interfaces)
+    - [Interfaces and `nil` (weird)](#interfaces-and-nil-weird)
+    - [Empty Interface](#empty-interface)
+  - [Type Assertions](#type-assertions)
+  - [Type Switches](#type-switches)
+  - [Function Types (!important)](#function-types-important)
+  - [Implicit Interfaces vs Dependency Injection](#implicit-interfaces-vs-dependency-injection)
   - [Generics](#generics)
 
 <!-- /code_chunk_output -->
@@ -2480,7 +2486,7 @@ converted:
 	i = int(h)						// OK
 ```
 
-### ioa
+### iota
 
 Like unnamed Enums in TS:
 
@@ -2646,6 +2652,344 @@ type FooBarer interface {
 	Barer
 }
 
+```
+
+#### Interfaces and `nil` (weird)
+
+Since an interface with a non-nil-type is not equal to nil, you must use
+reflection, see the following weird example:
+
+```go
+	var str *string
+	var ier interface{}
+
+	fmt.Println(reflect.ValueOf(ier).IsValid()) // false
+
+	fmt.Println(reflect.ValueOf(ier).IsNil())
+	// Compiletime Error Panic: reflect.Value.IsNil on zero Value
+
+	fmt.Println(str == nil) // true
+	fmt.Println(ier == nil) // true
+	ier = str
+	fmt.Println(str == nil) // true
+	fmt.Println(ier == nil) // false
+
+	fmt.Println(reflect.ValueOf(ier).IsValid()) // true
+	fmt.Println(reflect.ValueOf(ier).IsNil())   // true
+
+	fmt.Println("Before Programm End")
+```
+
+#### Empty Interface
+
+Is something like `any` in TS. Typical use case: placeholder for data of
+uncertain schema read from external sources, e.g. a JSON file.
+
+```go
+	var whatEver interface{}
+
+	whatEver = 10
+	whatEver = "Hi"
+	whatEver = struct {
+		name string
+	}{
+		name: "Michael Mayr",
+	}
+
+	fmt.Println(whatEver)
+	fmt.Println("Before Programm End")
+```
+
+##### Reading a JSON File
+
+```go
+package readingjsonexample
+
+import (
+	"encoding/json"
+	"io/ioutil"
+)
+
+type DataType map[string]interface{}
+
+func GetSomeJSON() DataType {
+	var data = DataType{}
+	var jsonPath = "readingjsonexample/some.json"
+
+	content, err := ioutil.ReadFile(jsonPath)
+
+	if err == nil {
+		json.Unmarshal(content, &data)
+	}
+
+	return data
+
+}
+
+//------------------
+
+package main
+
+import (
+	"fmt"
+	"webia1/MyGoProject/src/readingjsonexample"
+)
+
+func main() {
+
+	fmt.Println(readingjsonexample.GetSomeJSON())
+	fmt.Println("Before Program End")
+
+}
+
+```
+
+### Type Assertions
+
+Type Assertion is very different from a type conversion:
+
+- Type conversion
+  - can be applied to both
+    - concrete types and interfaces
+  - checked at compilation time
+- Type Assertion (see the example below)
+
+  - can only be applied to interface types
+  - checked at runtime (they can fail)
+
+- Conversions &rarr; change
+- Assertions &rarr; reveal
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+type MyInt int
+
+func main() {
+
+	var i interface{}
+	var j MyInt = 20
+	i = j
+	if i2, ok := i.(string); !ok {
+		// i.(string) => panic
+		fmt.Println("i2", i2) // "" // zero string value
+		recover()
+	}
+
+	if i3, ok := i.(int); !ok {
+		// i.(int) => panic
+		fmt.Println("i3", i3) // 0 // zero int value
+		recover()
+	}
+
+	i4 := i.(MyInt) // OK // 20
+
+	fmt.Println(i4)
+
+	fmt.Println("Before Program End")
+
+}
+```
+
+### Type Switches
+
+Use, when an interface can have multiple possible types:
+
+```go
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func main() {
+
+	var i interface{}
+
+	checkTypes(i)
+	checkTypes("")
+	checkTypes(0)
+	checkTypes(3)
+	checkTypes('a')
+	checkTypes("Hi")
+	checkTypes(map[string]int{"foo": 3})
+
+	fmt.Println("Before Program End")
+
+}
+
+func checkTypes(i interface{}) {
+	switch i.(type) {
+	case nil:
+		fmt.Println(i, "is nil")
+	case int:
+		fmt.Println(i, "is int")
+	default:
+		fmt.Printf("%v \n", i)
+		fmt.Println(reflect.TypeOf(i))
+	}
+}
+```
+
+### Function Types (!important)
+
+Function types allow functions to implement interfaces. Common use case: HTTP
+handlers.
+
+**You could also use normal function parameter but if your function depends on
+many other functions, it is better to use interface parameter and define a
+function type to bridge a function to the interface.**
+
+Following example shows the usage:
+
+```go
+
+type Handler interface {
+	ServerHTTP(http.ResponseWriter, *http.Request)
+	// .... and many other methods
+}
+
+// Functions in Go are first-class concepts
+type HandlerFunc func(http.ResponseWriter, *http.Request)
+
+// Method for HandlerFunc "Class"
+func (f HandlerFunc) ServerHTTP(w http.ResponseWriter, r *http.Request) {
+	f(w, r)
+}
+
+```
+
+### Implicit Interfaces vs Dependency Injection
+
+Full Example:
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+// A simple utility function "MyLogger"
+func MyLogger(msg string) {
+	fmt.Println(msg)
+}
+
+// A simple data store
+type MyDataStore struct {
+	someData map[string]string
+}
+
+// A method for it
+func (mds MyDataStore) GetUserByID(id string) (string, bool) {
+	name, ok := mds.someData[id]
+	return name, ok
+}
+
+// Factory function creates an instande of MyDataStore
+
+func NewMyDataStore() MyDataStore {
+	return MyDataStore{
+		someData: map[string]string{
+			"1": "Michael Jackson",
+			"2": "George Michael",
+		},
+	}
+}
+
+// Interfaces for DIP
+
+type SomeDataStore interface {
+	GetUserByID(id string) (string, bool)
+}
+
+type SomeLogger interface {
+	LogMessage(message string)
+}
+
+// Adapter between Interface and Logger
+
+type LoggerAdapter func(message string)
+
+func (lg LoggerAdapter) LogMessage(message string) {
+	lg(message)
+}
+
+// Dependencies defined, now Business Logic:
+
+type SimpleLogic struct {
+	l  SomeLogger
+	ds SomeDataStore
+}
+
+func (ml SimpleLogic) GreetUser(id string) (string, error) {
+	ml.l.LogMessage("UserID: " + id)
+	name, ok := ml.ds.GetUserByID(id)
+	if ok {
+		return "Welcome " + name, nil
+	} else {
+		return "", errors.New("No User")
+	}
+}
+
+func NewSimpleLogic(l SomeLogger, ds SomeDataStore) SimpleLogic {
+	return SimpleLogic{
+		l:  l,
+		ds: ds,
+	}
+}
+
+type SomeLogic interface {
+	GreetUser(id string) (string, error)
+}
+
+type Controller struct {
+	logger SomeLogger
+	logic  SomeLogic
+}
+
+func (c Controller) HandleGreeting(w http.ResponseWriter, r *http.Request) {
+	c.logger.LogMessage("Hi")
+	userID := r.URL.Query().Get("id")
+	message, err := c.logic.GreetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	} else {
+		w.Write([]byte(message))
+	}
+}
+
+func NewController(l SomeLogger, logic SomeLogic) Controller {
+	return Controller{
+		logger: l,
+		logic:  logic,
+	}
+}
+
+func main() {
+
+	loggerAdapter := LoggerAdapter(MyLogger)
+	dataStore := NewMyDataStore()
+	logic := NewSimpleLogic(loggerAdapter, dataStore)
+	controller := NewController(loggerAdapter, logic)
+	http.HandleFunc("/hi", controller.HandleGreeting)
+	http.ListenAndServe(":8080", nil)
+
+	// http://localhost:8080/hi?id=1
+	// Welcome Michael Jackson
+
+	fmt.Println("Before Program End")
+
+}
 ```
 
 ### Generics
