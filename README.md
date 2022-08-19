@@ -2866,6 +2866,8 @@ func (f HandlerFunc) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 
 ### Implicit Interfaces vs Dependency Injection
 
+There is library for that: <https://github.com/google/wire>
+
 Full Example:
 
 ```go
