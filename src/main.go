@@ -6,22 +6,27 @@ import (
 	"os"
 )
 
-func fileChecker(name string) error {
-	f, err := os.Open(name)
+func fileChecker(fullpath string) error {
+	f, err := os.Open(fullpath)
 	if err != nil {
-		return fmt.Errorf("in fileChecker: %w", err)
+		return fmt.Errorf("that's from fileChecker and this is from os.Open: %w", err)
 	}
 	f.Close()
 	return nil
 }
 
 func main() {
-	err := fileChecker("not_here.txt")
+
+	err := fileChecker("WrongNameWith.wrongExtension")
 	if err != nil {
-		fmt.Println(err)
-		if wrappedErr := errors.Unwrap(err); wrappedErr != nil {
-			fmt.Println(wrappedErr)
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("Custom Message instead of err: ", err)
 		}
 	}
-	fmt.Println("Before Program End")
+
+	fmt.Println("Debugger")
 }
+
+/*
+
+ */

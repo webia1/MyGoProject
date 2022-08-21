@@ -107,11 +107,17 @@ Own Notices from various sources.
     - [Catching Runtime Error](#catching-runtime-error)
     - [Formatting with `fmt.Errorf`](#formatting-with-fmterrorf)
   - [Sentinel Errors](#sentinel-errors)
+    - [Example 1](#example-1)
+    - [Example 2 (archive/zip)](#example-2-archivezip)
   - [Using Constants for Sentinel Errors => Don't do it](#using-constants-for-sentinel-errors-dont-do-it)
   - [Errors are values](#errors-are-values)
   - [Custom Errors](#custom-errors)
   - [Simulating Exception Handling using `panic`](#simulating-exception-handling-using-panic)
-  - [Wrapping Errors (Example: non existing file)](#wrapping-errors-example-non-existing-file)
+  - [Error Types (Dave)](#error-types-dave)
+  - [Opaque errors (Dave)](#opaque-errors-dave)
+  - [Wrapping Errors (Example: non existing file)(Jon)](#wrapping-errors-example-non-existing-filejon)
+  - [Is and As](#is-and-as)
+    - [Example One](#example-one)
 
 <!-- /code_chunk_output -->
 
@@ -3107,11 +3113,17 @@ func main() {
 sentinel: Wache, Wachposten, Markierung, Hinweiszeichen, Schildwache
 
 See more online:
-<https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully>
+
+- <https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully>
+- <https://dave.cheney.net/tag/errors>
 
 Sentinel errors are one of the few variables declared at pacakage level. Their
 names start with `Err` (Exception `io.EOF`). They should be threated as
 read-only. (Go compiler cannot enforce this).
+
+> There are even sentinel errors that signify that an error did not occur, like
+> `go/build.NoGoError`, and `path/filepath.SkipDir` from `path/filepath.Walk`.
+> (See URLs above)
 
 Sentinel errors are usually used to indicate that you cannot start or proceed.
 
@@ -3123,10 +3135,90 @@ It's far better to reuse one of the standard library's existing ones or define
 an error type that includes information about the condition that caused the
 error to be returned.
 
-**However, if you have an error condition that indicates a specific state in
-your application has been reached where no further processing is possible and no
-contextual information is required to explain the error state, a sentinel error
-is the correct choice.**
+> Jon: If you have an error condition that indicates a specific state in your
+> application has been reached where no further processing is possible and no
+> contextual information is required to explain the error state, a sentinel
+> error is the correct choice.
+
+> Dave: So, my advice is to avoid using sentinel error values in the code you
+> write. There are a few cases where they are used in the standard library, but
+> this is not a pattern that you should emulate.
+
+#### Example 1
+
+<https://go.dev/play/p/qwi4ligYZYh>
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"reflect"
+)
+
+var ErrDivideByZeroDarling = errors.New("ho ho ho, division by zero")
+
+func Divide(numerator int, denominator int) (int, error) {
+	if denominator == 0 {
+		return 0, ErrDivideByZeroDarling  // <-- Using the sentinel error
+	}
+	return numerator / denominator, nil
+}
+
+func main() {
+	a, b := 10, 0
+	result, err := Divide(a, b)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrDivideByZeroDarling):
+			fmt.Println(reflect.TypeOf(err))
+			fmt.Println(err, errors.Is(err, ErrDivideByZeroDarling))
+			fmt.Println("Debugger")
+		default:
+			fmt.Printf("unexpected division error: %s\n", err)
+		}
+		return
+	}
+
+	fmt.Printf("%d / %d = %d\n", a, b, result)
+}
+```
+
+#### Example 2 (archive/zip)
+
+Source: <https://go.dev/play/p/7kNKASai6ML>
+
+```go
+package main
+
+import (
+	"archive/zip"
+	"bytes"
+	"fmt"
+)
+
+/**
+// Predefined sentinel errors in zip-package
+var (
+	ErrFormat    = errors.New("zip: not a valid zip file")
+	ErrAlgorithm = errors.New("zip: unsupported compression algorithm")
+	ErrChecksum  = errors.New("zip: checksum error")
+)
+*/
+
+func main() {
+	data := []byte("Some content but not zip")
+	notAZipFile := bytes.NewReader(data)
+	_, err := zip.NewReader(notAZipFile, int64(len(data)))
+
+	// (*err.(data)).s: "zip: not a valid zip file"
+	if err == zip.ErrFormat {
+		fmt.Println("Format Error: ", err)
+	}
+	fmt.Println("Before Program End")
+}
+```
 
 ### Using Constants for Sentinel Errors => Don't do it
 
@@ -3191,9 +3283,33 @@ func main() {
 }
 ```
 
-### Wrapping Errors (Example: non existing file)
+### Error Types (Dave)
 
-`fmt.Errorf` has a special verb `%w`:
+> [>> See here online](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully#:~:text=will%20discuss%20next.-,Error%20types,-Error%20types%20are)
+
+```go
+if err, ok := err.(SomeType); ok { … }
+```
+
+### Opaque errors (Dave)
+
+> [>> See here online](https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully#:~:text=your%20public%20API.-,Opaque%20errors,-Now%20we%20come)
+
+```go
+import “github.com/quux/bar”
+
+func fn() error {
+        x, err := bar.Foo()
+        if err != nil {
+                return err
+        }
+        // use x
+}
+```
+
+### Wrapping Errors (Example: non existing file)(Jon)
+
+`fmt.Errorf` has a special verb `%w`.
 
 <https://go.dev/play/p/N4PNzQCbKXN>
 
@@ -3225,4 +3341,59 @@ func main() {
 	}
 	fmt.Println("Before Program End")
 }
+```
+
+> If you want to create a new error that contains the message from another
+> error, but don’t want to wrap it, use `fmt.Errorf` to create an error, but use
+> the `%v` verb instead of `%w`.
+
+```go
+err := someFunctionsThatReturnsAnError()
+if err != nil {
+	return fmt.Errorf("internal failure: %v", err)
+}
+```
+
+### Is and As
+
+See the example online: <https://go.dev/play/p/qwi4ligYZYh>
+
+> you can also use `reflect.DeepEqual()` to compare anything.
+
+#### Example One
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"os"
+)
+
+func fileChecker(fullpath string) error {
+	f, err := os.Open(fullpath)
+	if err != nil {
+		return fmt.Errorf("that's from fileChecker and this is from os.Open: %w", err)
+	}
+	f.Close()
+	return nil
+}
+
+func main() {
+
+	err := fileChecker("WrongNameWith.wrongExtension")
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("Custom Message instead of err: ", err)
+		}
+	}
+
+	// Outputs:
+	// Custom Message instead of err:  that's from fileChecker and this is from os.Open:
+	// open WrongNameWith.wrongExtension: no such file or directory
+
+	fmt.Println("Debugger")
+}
+
 ```
