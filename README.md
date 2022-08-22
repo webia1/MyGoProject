@@ -3362,6 +3362,11 @@ See the example online: <https://go.dev/play/p/qwi4ligYZYh>
 
 #### Example One
 
+`os.ErrNotExist` comes from `io/fs.ErrNotExist`, details:
+
+- <https://pkg.go.dev/io>
+- <https://pkg.go.dev/io/fs>
+
 ```go
 package main
 

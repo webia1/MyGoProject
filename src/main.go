@@ -24,6 +24,10 @@ func main() {
 		}
 	}
 
+	// Outputs:
+	// ustom Message instead of err:  that's from fileChecker and this is from os.Open:
+	// open WrongNameWith.wrongExtension: no such file or directory
+
 	fmt.Println("Debugger")
 }
 
