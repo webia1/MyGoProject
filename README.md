@@ -117,7 +117,10 @@ Own Notices from various sources.
   - [Opaque errors (Dave)](#opaque-errors-dave)
   - [Wrapping Errors (Example: non existing file)(Jon)](#wrapping-errors-example-non-existing-filejon)
   - [Is and As](#is-and-as)
-    - [Example One](#example-one)
+    - [Using existing `Is`](#using-existing-is)
+    - [Implementing own `Is` method](#implementing-own-is-method)
+    - [Own `Is` method, Example 2](#own-is-method-example-2)
+    - [As](#as)
 
 <!-- /code_chunk_output -->
 
@@ -3360,7 +3363,7 @@ See the example online: <https://go.dev/play/p/qwi4ligYZYh>
 
 > you can also use `reflect.DeepEqual()` to compare anything.
 
-#### Example One
+#### Using existing `Is`
 
 `os.ErrNotExist` comes from `io/fs.ErrNotExist`, details:
 
@@ -3402,3 +3405,128 @@ func main() {
 }
 
 ```
+
+#### Implementing own `Is` method
+
+If you want to implement an own error type `errors.Is` may not be
+compatible/comparable with it.
+
+See in the example below the following line:
+`localMe, ok := target.(MyErr); // comparability checking`
+
+```go
+type MyErr struct {
+	Codes []int
+}
+
+func (me MyErr) Error() string {
+	return fmt.Sprintf("codes: %v, me.Codes")
+}
+
+func (me MyErr) Is(target error) bool {
+	if localMe, ok := target.(MyErr); ok {
+		return reflect.DeepEqual(me, localMe)
+	}
+	return false
+}
+```
+
+#### Own `Is` method, Example 2
+
+One of them has to be given: `Resource` or `Code`. Study the following example:
+
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+)
+
+type ResourceErr struct {
+	Resource string
+	Code     int
+}
+
+func (re ResourceErr) Error() string {
+	return fmt.Sprintf("%s: %d", re.Resource, re.Code)
+}
+
+func (re ResourceErr) Is(target error) bool {
+
+	if other, ok := target.(ResourceErr); ok {
+		ignoreResource := other.Resource == ""
+		ignoreCode := other.Code == 0
+		matchResource := other.Resource == re.Resource
+		matchCode := other.Code == re.Code
+		return matchResource && matchCode ||
+			matchResource && ignoreCode ||
+			ignoreResource && matchCode
+	}
+
+	return false
+}
+
+func main() {
+
+	err1 := ResourceErr{
+		Resource: "Database",
+		Code:     123,
+	}
+
+	err2 := ResourceErr{
+		Resource: "Network",
+		Code:     456,
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Database"}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+	if errors.Is(err1, ResourceErr{Code: 123}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Network"}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err2, ResourceErr{Code: 456}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Database", Code: 123}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Network", Code: 456}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Hohoho"}) {
+		fmt.Println("err1:", err1)
+		// No output
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Hohoho", Code: 123}) {
+		fmt.Println("err1:", err1)
+		// No output
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Hohoho"}) {
+		fmt.Println("err2:", err2)
+		// No output
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Hohoho", Code: 456}) {
+		fmt.Println("err2:", err2)
+		// No output
+	}
+```
+
+#### As

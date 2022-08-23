@@ -3,30 +3,92 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 )
 
-func fileChecker(fullpath string) error {
-	f, err := os.Open(fullpath)
-	if err != nil {
-		return fmt.Errorf("that's from fileChecker and this is from os.Open: %w", err)
+type ResourceErr struct {
+	Resource string
+	Code     int
+}
+
+func (re ResourceErr) Error() string {
+	return fmt.Sprintf(" resource %s: code %d", re.Resource, re.Code)
+}
+
+func (re ResourceErr) Is(target error) bool {
+
+	if other, ok := target.(ResourceErr); ok {
+		ignoreResource := other.Resource == ""
+		ignoreCode := other.Code == 0
+		matchResource := other.Resource == re.Resource
+		matchCode := other.Code == re.Code
+		return matchResource && matchCode ||
+			matchResource && ignoreCode ||
+			ignoreResource && matchCode
 	}
-	f.Close()
-	return nil
+
+	return false
 }
 
 func main() {
 
-	err := fileChecker("WrongNameWith.wrongExtension")
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			fmt.Println("Custom Message instead of err: ", err)
-		}
+	err1 := ResourceErr{
+		Resource: "Database",
+		Code:     123,
 	}
 
-	// Outputs:
-	// ustom Message instead of err:  that's from fileChecker and this is from os.Open:
-	// open WrongNameWith.wrongExtension: no such file or directory
+	err2 := ResourceErr{
+		Resource: "Network",
+		Code:     456,
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Database"}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+	if errors.Is(err1, ResourceErr{Code: 123}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Network"}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err2, ResourceErr{Code: 456}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Database", Code: 123}) {
+		fmt.Println("err1:", err1)
+		// err1:  resource Database: code 123
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Network", Code: 456}) {
+		fmt.Println("err2:", err2)
+		// err2:  resource Network: code 456
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Hohoho"}) {
+		fmt.Println("err1:", err1)
+		// No output
+	}
+
+	if errors.Is(err1, ResourceErr{Resource: "Hohoho", Code: 123}) {
+		fmt.Println("err1:", err1)
+		// No output
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Hohoho"}) {
+		fmt.Println("err2:", err2)
+		// No output
+	}
+
+	if errors.Is(err2, ResourceErr{Resource: "Hohoho", Code: 456}) {
+		fmt.Println("err2:", err2)
+		// No output
+	}
 
 	fmt.Println("Debugger")
 }
