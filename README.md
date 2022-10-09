@@ -378,6 +378,8 @@ go mod init
 touch main.go
 ```
 
+<div style="page-break-before:always"></div>
+
 ### Hello World
 
 A complete program is created by linking a single, unimported package called the
@@ -427,6 +429,8 @@ You can also use your GitHub repo as a module like:
 ```shell
 go mod init github.com/webia1/my-go-project
 ```
+
+<div style="page-break-before:always"></div>
 
 ## Development Environment
 
@@ -508,6 +512,8 @@ Once the `Makefile` is in the `"src"` directory (any name can be chosen), type:
 ```shell
 make
 ```
+
+<div style="page-break-before:always"></div>
 
 ## Types and Declarations
 
@@ -838,6 +844,8 @@ Preferred Go Style (as short as possible within block code):
 - k, v &rarr; key, value
 - i, j &rarr; common names for index variables
 
+<div style="page-break-before:always"></div>
+
 ## Composite Types
 
 ### Arrays
@@ -1003,6 +1011,8 @@ x = append(x, 1, 3, 7)
 A slice's length always increases after an `append`! Make sure that you set the
 slice's length before using the `make`; otherwise, your slice may start off with
 a surprising number of zero values.
+
+<div style="page-break-before:always"></div>
 
 #### `nil` vs `zero` Declarations
 
@@ -1920,6 +1930,8 @@ func addToInitial(initial int, numbers ...int) []int {
 }
 ```
 
+<div style="page-break-before:always"></div>
+
 ### Multiple Return Values
 
 Named or not named, see below:
@@ -2051,6 +2063,8 @@ Similar to JS:
 ```go
 // TODO: Example?
 ```
+
+<div style="page-break-before:always"></div>
 
 ### Functions as Params
 
@@ -2292,6 +2306,8 @@ func main() {
 }
 
 ```
+
+<div style="page-break-before:always"></div>
 
 ### Methods (Difference to functions)
 
@@ -2730,6 +2746,8 @@ uncertain schema read from external sources, e.g. a JSON file.
 	fmt.Println("Before Programm End")
 ```
 
+<div style="page-break-before:always"></div>
+
 ##### Reading a JSON File
 
 ```go
@@ -2773,6 +2791,8 @@ func main() {
 }
 
 ```
+
+<div style="page-break-before:always"></div>
 
 ### Type Assertions
 
@@ -2825,6 +2845,8 @@ func main() {
 }
 ```
 
+<div style="page-break-before:always"></div>
+
 ### Type Switches
 
 Use, when an interface can have multiple possible types:
@@ -2866,6 +2888,8 @@ func checkTypes(i interface{}) {
 }
 ```
 
+<div style="page-break-before:always"></div>
+
 ### Function Types (!important)
 
 Function types allow functions to implement interfaces. Common use case: HTTP
@@ -2893,6 +2917,8 @@ func (f HandlerFunc) ServerHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 ```
+
+<div style="page-break-before:always"></div>
 
 ### Implicit Interfaces vs Dependency Injection
 
@@ -3030,6 +3056,8 @@ Starting with version 1.18, Go has added support for generics, also known as
 type parameters.
 
 <https://gobyexample.com/generics>
+
+<div style="page-break-before:always"></div>
 
 ## Errors
 
@@ -3759,6 +3787,8 @@ go build -trimpath  .
 		or a plain import path (when using the standard library, or GOPATH).
 
 ```
+
+<div style="page-break-before:always"></div>
 
 ## Miscellaneous
 
