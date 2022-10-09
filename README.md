@@ -3710,15 +3710,34 @@ outputs:
 
 ```go
 10
-runtime error: integer divide by zero
+runtime error: integer divide by zero # <-- HANDLED
 5
 3
 2
 ```
 
-## Trouble Shooting
+##### Recipe
 
-### `invalid version: unknown revision`
+- **`panic`**: For fatal situations
+
+- **`recover`**: Gracefully handle
+
+- Or exit with `os.Exit(1)` and log the situation before if there is e.g.
+  hardware defects or memory issues.
+
+## Miscellaneous
+
+### Run/Build watch with nodemon
+
+See the `nodemon.json` for configuration. Running with:
+
+```shell
+nodemon --signal SIGTERM
+```
+
+### Trouble Shooting
+
+#### `invalid version: unknown revision`
 
 ```shell
 go clean --modcache
