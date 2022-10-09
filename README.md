@@ -3728,6 +3728,38 @@ runtime error: integer divide by zero # <-- HANDLED
 - Or exit with `os.Exit(1)` and log the situation before if there is e.g.
   hardware defects or memory issues.
 
+  - `recover` does not make clear, what could fail. We can print a message if
+    something fails and continue. But use it if you want to keep your secret
+    parts of your app secret if you creating a library. Don't let `panic` expose
+    them. In case of a `panic` use `recover` to convert it to an error and let
+    the consumers decide how to handle it.
+
+##### Getting a Stack Trace from an Error &rarr;
+
+Details online: <https://pkg.go.dev/github.com/pkg/errors>
+
+```go
+type stackTracer interface {
+        StackTrace() errors.StackTrace
+}
+```
+
+###### `trimpath`: Removing full paths in StackTrace
+
+```shell
+go build -trimpath  .
+```
+
+```shell
+# excerpt from `go help build`
+-trimpath
+		remove all file system paths from the resulting executable.
+		Instead of absolute file system paths, the recorded file names
+		will begin either a module path@version (when using modules),
+		or a plain import path (when using the standard library, or GOPATH).
+
+```
+
 ## Miscellaneous
 
 ### Run/Build watch with nodemon
