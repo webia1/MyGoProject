@@ -120,7 +120,14 @@ Own Notices from various sources.
     - [Using existing `Is`](#using-existing-is)
     - [Implementing own `Is` method](#implementing-own-is-method)
     - [Own `Is` method, Example 2](#own-is-method-example-2)
-    - [As](#as)
+    - [`Error.As`](#erroras)
+    - [Overwriting `errors.Is`](#overwriting-errorsis)
+  - [Wrapping Errors with defer](#wrapping-errors-with-defer)
+  - ["Exception" handling](#exception-handling)
+    - [`panic`](#panic)
+    - [`panic -> defer -> recover`](#panic-defer-recover)
+- [Trouble Shooting](#trouble-shooting)
+  - [`invalid version: unknown revision`](#invalid-version-unknown-revision)
 
 <!-- /code_chunk_output -->
 
@@ -3527,6 +3534,192 @@ func main() {
 		fmt.Println("err2:", err2)
 		// No output
 	}
+}
 ```
 
-#### As
+#### `Error.As`
+
+`Error.As` checks if a returned error (or wrapping err) matches a specific type.
+
+- Input Parameter
+
+  - Error being examined
+  - Pointer to the type (or to an interface - second example below)
+
+If the second param is not an pointer to an error or interface, the method will
+panic.
+
+##### Example 1
+
+```go
+someErr := someFunctionReturnsAnError()
+	var myErr MyErr // zero value of MyErr
+	if errors.As(someErr, $myErr) {
+	fmt.Println(myErr.Code)
+}
+```
+
+##### Example 2
+
+```go
+	someErr := someFunctionReturnsAnError()
+  var coder interface {
+		Code() int
+	}
+	if errors.As(someErr, &coder) {
+		fmt.Println(coder.Code())
+	}
+
+```
+
+#### Overwriting `errors.Is`
+
+If you want to match an error of one type and return another, you can overwrite
+`errors.As`.
+
+> TODO: Add an example
+
+### Wrapping Errors with defer
+
+If you don't want to repeat everytime the same message when you wrap multiple
+errors, you can simplify the code by using `defer`. Both examples below do the
+same:
+
+```go
+func DoSomeThings(val1 int, val2 string) (string, error) {
+	val3, err := doThing1(val1)
+	if err != nil {
+		return "", fmt.Errorf("in DoSomeThings: %w", err)
+	}
+	val4, err := doThing2(val2)
+	if err != nil {
+		return "", fmt.Errorf("in DoSomeThings: %w", err)
+	}
+	result, err := doThing3(val3, val4)
+	if err != nil {
+		return "", fmt.Errorf("in DoSomeThings: %w", err)
+	}
+	return result, nil
+}
+```
+
+> TODO Update defer part
+
+Replaceable with:
+
+```go
+func DoSomeThings(val1 int, val2 string) (_ string, err error) {
+
+
+  defer func() {
+		if err != nil {
+			err = fmt.Errorf("in DoSomeThings: %w", err)
+		}
+	}() // <-- notice `()`
+
+	val3, err := doThing1(val1)
+	if err != nil {
+		return "", err
+	}
+	val4, err := doThing2(val2)
+	if err != nil {
+		return "", err
+	}
+	return doThing3(val3, val4)
+
+}
+```
+
+### "Exception" handling
+
+#### `panic`
+
+Go generates a panic, when go runtime is don't know how to proceed. You can call
+it directly too (example below). It takes only one param of any type (usually
+string).
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+)
+
+func myPunicFunc(msg string) {
+	panic(msg)
+}
+
+func main() {
+
+	myPunicFunc(os.Args[0])
+
+	fmt.Println("Debugger")
+}
+```
+
+outputs:
+
+```shell
+anic: MyGoProject/src/__debug_bin
+
+goroutine 1 [running]:
+main.myPunicFunc({0x7ff7bfeff7b0, 0x3a})
+	MyGoProject/src/main.go:9 +0x39
+main.main()
+	MyGoProject/src/main.go:14 +0x45
+```
+
+#### `panic -> defer -> recover`
+
+When panic happens the current function exits immediately and any attached
+`defers` run, till main is reached, then the program exits with a message and a
+stack trace.
+
+Go provides a way to capture and graceful shutdown or to prevent shutdown;
+examine the following example (recover within defer):
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func divideTenBy(i int) {
+
+	defer func() {
+		if v := recover(); v != nil {
+			fmt.Println(v)
+		}
+	}()
+
+	fmt.Println(10 / i)
+}
+
+func main() {
+
+	someInts := []int{1, 2, 0, 3}
+	for _, v := range someInts {
+		divideTenBy(v)
+	}
+}
+```
+
+outputs:
+
+```go
+10
+5
+runtime error: integer divide by zero
+3
+```
+
+## Trouble Shooting
+
+### `invalid version: unknown revision`
+
+```shell
+go clean --modcache
+go get -u
+```
