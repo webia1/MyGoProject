@@ -126,8 +126,11 @@ Own Notices from various sources.
   - ["Exception" handling](#exception-handling)
     - [`panic`](#panic)
     - [`panic -> defer -> recover`](#panic-defer-recover)
-- [Trouble Shooting](#trouble-shooting)
-  - [`invalid version: unknown revision`](#invalid-version-unknown-revision)
+- [Miscellaneous](#miscellaneous)
+  - [Run/Build watch with nodemon](#runbuild-watch-with-nodemon)
+  - [Debugging with VSCode](#debugging-with-vscode)
+  - [Trouble Shooting](#trouble-shooting)
+    - [`invalid version: unknown revision`](#invalid-version-unknown-revision)
 
 <!-- /code_chunk_output -->
 
@@ -3733,6 +3736,28 @@ See the `nodemon.json` for configuration. Running with:
 
 ```shell
 nodemon --signal SIGTERM
+```
+
+### Debugging with VSCode
+
+While you are `main.go` is opened, us the following configuration:
+
+```json
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debugging GoLang",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${fileDirname}"
+    }
+  ]
+}
 ```
 
 ### Trouble Shooting
