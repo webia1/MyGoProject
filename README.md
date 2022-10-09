@@ -3692,14 +3692,14 @@ func divideTenBy(i int) {
 		if v := recover(); v != nil {
 			fmt.Println(v)
 		}
-	}()
+	}()     // <--- NOTICE THE ENCLOSING PARENS
 
 	fmt.Println(10 / i)
 }
 
 func main() {
 
-	someInts := []int{1, 2, 0, 3}
+	someInts := []int{1, 0, 2, 3, 4}
 	for _, v := range someInts {
 		divideTenBy(v)
 	}
@@ -3710,9 +3710,10 @@ outputs:
 
 ```go
 10
-5
 runtime error: integer divide by zero
+5
 3
+2
 ```
 
 ## Trouble Shooting

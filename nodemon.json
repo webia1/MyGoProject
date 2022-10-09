@@ -1,0 +1,7 @@
+{
+  "watch": ["src/main.go", "nodemon.json"],
+  "ignore": ["**/*test.go"],
+  "exec": "go run src/main.go",
+  "verbose": "true",
+  "ext": "go"
+}
