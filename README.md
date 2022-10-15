@@ -126,6 +126,10 @@ Own Notices from various sources.
   - ["Exception" handling](#exception-handling)
     - [`panic`](#panic)
     - [`panic -> defer -> recover`](#panic-defer-recover)
+- [Modules & Packages](#modules-packages)
+  - [go.mod](#gomod)
+  - [Imports and Exports](#imports-and-exports)
+    - [Example (Attention: Look carefully)](#example-attention-look-carefully)
 - [Miscellaneous](#miscellaneous)
   - [Run/Build watch with nodemon](#runbuild-watch-with-nodemon)
   - [Debugging with VSCode](#debugging-with-vscode)
@@ -3789,6 +3793,93 @@ go build -trimpath  .
 ```
 
 <div style="page-break-before:always"></div>
+
+## Modules & Packages
+
+Three main concepts: One **repository location (unique url)** includes one
+single **module (~project)** (Lib/App/..) includes one ore more **packages**.
+(You can store more modules in a single repository but it is not encouraged!).
+Everything in a module is versioned together.
+
+### go.mod
+
+`go mod init <MODULE_PATH>`
+
+A module path can be e.g. `github.com/somerepo/someproj`
+
+The following command initialises a go module (that means creates a `go.mod`
+file) and takes the current path (relative to GOPATH) as module name.
+
+- It shows the current **version** of go.
+- Optional there can be other dependencies in **`require`** section, at the
+  bottom something like
+  `require ( github.com/someotherrepo/somethirdpartymod, ... `).
+  - (**Linter rule**: every **module** in a new line).
+- There are two optional sections:
+  - **replace** a certain module
+  - **exclude** (e.g. a certain version of a module)
+
+```shell
+(1) go mod init
+
+(2) ls
+
+       go.mod
+
+(3) cat go.mod
+
+       module somedir
+
+       go 1.18
+```
+
+### Imports and Exports
+
+**Short Explanation:** Identifiers (variables, constants, type, function, ...
+etc.) from other packages can be accessed if they are exported in their package
+(**initial letter of exported identifiers is uppercase**) and we import this
+package. (That means, all identifiers beginning with lowercase letter or
+underscore are private.)
+
+All exported identifiers are called as `Package's API`; due to backward
+compatibility, they may not change (except there is a major version with
+breaking changes).
+
+#### Example (Attention: Look carefully)
+
+Given folder structure (same file name as the containing folder name):
+
+```shell
+[ROOT]
+-- [DIR] somepackage 	# name der package contains:
+   -- [FILE] somepackage.go
+	       [Content excerpt] `package anothername ...`
+[FILE] main.go
+```
+
+and the main.go contains:
+
+Attention:
+
+1. packages name is `somepackage` and not `anothername`.)
+2. You therefore import `somepackage`
+3. **BUT** you use as packagename `anothername` in your main
+
+   3.1) better the names match (except versioning &rarr; coming soon)
+
+```go
+package main
+
+import (
+	"github.com/somerepo/someproj/somepackage"  # absolute or
+	"somepackage" # relative (not recommended)
+)
+
+function main () {
+	// ...
+	anothername.SomeExportedFunction(/*...*/)
+}
+```
 
 ## Miscellaneous
 
