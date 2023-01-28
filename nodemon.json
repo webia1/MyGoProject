@@ -1,7 +1,7 @@
 {
-  "watch": ["src/main.go", "nodemon.json"],
+  "watch": ["src/main.go", "nodemon.json", "**/*.gohtml"],
   "ignore": ["**/*test.go"],
-  "exec": "go run src/main.go",
+  "exec": "cd src && go build && go run . && cd ..",
   "verbose": "true",
   "ext": "go"
 }

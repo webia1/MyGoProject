@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sudoku Solver</title>
+    <style>
+      table {
+        width: 90%;
+        margin: 0 auto;
+      }
+      td {
+        width: 33px;
+        height: 33px;
+        text-align: center;
+        border: 1px solid black;
+      }
+      input {
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        font-size: 24px;
+        background-color: transparent;
+        border: none;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .red {
+        background-color: #ff0000;
+      }
+      .green {
+        background-color: #00ff00;
+      }
+      .blue {
+        background-color: #0000ff;
+      }
+
+      .bold {
+        display: none;
+      }
+
+      /* Add styles for inner block borders */
+      td:nth-child(3n + 1) {
+        border-left: 1px solid blue;
+        border-left-width: 3px;
+      }
+      td:nth-child(3n + 3) {
+        border-right: 1px solid blue;
+        border-right-width: 3px;
+      }
+      tr:nth-child(3n + 1) td {
+        border-top: 1px solid blue;
+        border-top-width: 3px;
+      }
+      tr:nth-child(3n + 3) td {
+        border-bottom: 1px solid blue;
+        border-bottom-width: 3px;
+      }
+    </style>
+    <script>
+      //   const inputElements = document.querySelectorAll(".my-input");
+      //   inputElements.forEach((input) => {
+      //     input.addEventListener("change", function () {
+      //       if (this.value !== "0") {
+      //         this.classList.add("bold");
+      //       } else {
+      //         this.classList.remove("bold");
+      //       }
+      //     });
+      //   });
+    </script>
+  </head>
+  <body>
+    <table>
+      {{ range $i, $row := .puzzle }}
+      <tr>
+        {{ range $j, $cell := $row }}
+        <td>{{ $cell }}</td>
+        {{ end }}
+      </tr>
+      {{ end }}
+    </table>
+    <br />
+    <a href="/">Input new puzzle</a>
+  </body>
+</html>
