@@ -374,8 +374,8 @@ export GONOPROXY=example.com/*,example2.com/*,ex3.com/whatever
 2. Choose your workspace within your path, e.g:
 
 ```shell
-mkdir $GOPATH/src/MyGoProject/
-cd    $GOPATH/src/MyGoProject/
+mkdir $GOPATH/src/webia1/MyGoProject/
+cd    $GOPATH/src/webia1/MyGoProject/
 ```
 
 3. Initialise Module and Create a Main File
