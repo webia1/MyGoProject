@@ -189,9 +189,12 @@ package manager like gobrew is installed:
 # ~/.zshrc excerpt
 
 export PATH="$HOME/.gobrew/current/bin:$HOME/.gobrew/bin:$PATH"
-export GOPATH="$HOME/.gobrew/current"
+export GOROOT="$HOME/.gobrew/current/go"
 export GOBIN="$HOME/.gobrew/current/bin"
+export GOPATH="$HOME/go"
+PATH="$GOPATH/bin:$PATH"
 ```
+**IMPORTANT: If there is a no `go` directory, create it before**
 
 ### VsCode Install/Update Tools
 
